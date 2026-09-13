@@ -6,7 +6,7 @@ repo="$(cd "$(dirname "$0")/.." && pwd)"
 export HOME="$(mktemp -d)"
 export USERPROFILE="$HOME"  # os.homedir() no Windows le USERPROFILE
 mkdir -p "$HOME/.claude"
-printf '# Meu\n\n## Higiene de git (todos os repos)\nja tenho\n' > "$HOME/.claude/CLAUDE.md"
+printf '# Higiene de git (todos os repos)\nja tenho, com outro nivel de titulo\n' > "$HOME/.claude/CLAUDE.md"
 echo '{"model":"opus","enabledPlugins":{"caveman@caveman":false},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}]}}' > "$HOME/.claude/settings.json"
 
 node "$repo/install.js" --global >/dev/null
@@ -25,7 +25,7 @@ a.equal(s.hooks.PreToolUse.length, 2);
 a.equal(s.hooks.PostToolUse.length, 1);
 '
 md="$HOME/.claude/CLAUDE.md"
-[ "$(grep -c '^## Higiene de git' "$md")" = 1 ]
+[ "$(grep -c '^#\+ Higiene de git' "$md")" = 1 ]
 [ "$(grep -c '^## Subagentes' "$md")" = 1 ]
 [ "$(grep -c '^## Autonomia' "$md")" = 1 ]
 [ -f "$HOME/bin/git-faxina.sh" ] && [ -f "$HOME/.claude/.ponytail-active" ]

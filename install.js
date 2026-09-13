@@ -86,7 +86,7 @@ const claudeMd = global ? path.join(claudeDir, 'CLAUDE.md') : path.join(alvoDir,
 let existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
 const secoes = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8').split(/^(?=## )/m).filter(s => s.trim());
 // Higiene de git depende do ~/bin/git-faxina.sh: so' no global.
-const novas = secoes.filter(s => (global || !s.startsWith('## Higiene')) && !existente.includes(s.split('\n')[0]));
+const novas = secoes.filter(s => (global || !s.startsWith('## Higiene')) && !existente.includes(s.split('\n')[0].replace(/^#+/, '')));
 if (!novas.length) console.log('mantido  ' + claudeMd);
 else {
   existente += (existente && !existente.endsWith('\n') ? '\n' : '') + novas.map(s => '\n' + s.trimEnd() + '\n').join('');
