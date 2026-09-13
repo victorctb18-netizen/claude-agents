@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s\\n' '{\"systemMessage\":\"Subagentes: explorer (mapa) | worker (edita) | tester (roda) | reviewer (diff, opus) | ui-reviewer (tela, opus) | researcher (fato externo). Tarefa 3+ arquivos: $orchestrator. Pedir: \\\"usa o reviewer no diff\\\".\"}'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-cache-bust.js",
+            "timeout": 15,
+            "statusMessage": "?v= check"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-node-check.js",
+            "timeout": 15,
+            "statusMessage": "node --check"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "ask": [
+      "Bash(docker compose up*)",
+      "PowerShell(docker compose up*)"
+    ]
+  }
+}
