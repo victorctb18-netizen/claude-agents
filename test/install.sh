@@ -30,4 +30,6 @@ md="$HOME/.claude/CLAUDE.md"
 [ "$(grep -c '^## Autonomia' "$md")" = 1 ]
 [ -f "$HOME/bin/git-faxina.sh" ] && [ -f "$HOME/.claude/.ponytail-active" ]
 [ "$(git config --global alias.faxina)" = '!bash ~/bin/git-faxina.sh' ]
+CLAUDE_CONFIG_DIR="$HOME/.claude-2" node "$repo/install.js" --global >/dev/null
+[ -f "$HOME/.claude-2/agents/reviewer.md" ] && [ -f "$HOME/.claude-2/settings.json" ]
 echo ok

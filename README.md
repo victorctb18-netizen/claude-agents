@@ -19,6 +19,12 @@ oferecer: `/plugin` → instalar cada um). Rodar de novo atualiza sem duplicar;
 plugin que você desligou continua desligado. `bash test/install.sh` (e o CI)
 prova isso.
 
+Várias contas do Claude: uma pasta de config por conta, instale em cada:
+
+```powershell
+$env:CLAUDE_CONFIG_DIR="$HOME\.claude-2"; node claude-agents/install.js --global
+```
+
 Fica de fora (específico da máquina): hook do `rtk`, statusLine, chaves ssh,
 MCP servers.
 

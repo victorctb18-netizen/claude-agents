@@ -17,7 +17,8 @@ const os = require('os');
 
 const aqui = __dirname;
 const global = process.argv.includes('--global');
-const alvoDir = global ? path.join(os.homedir(), '.claude') : path.resolve(process.argv[2] || '.');
+// CLAUDE_CONFIG_DIR: uma pasta por conta do Claude (c2/c3/c4); instale em cada uma.
+const alvoDir = global ? (process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude')) : path.resolve(process.argv[2] || '.');
 const claudeDir = global ? alvoDir : path.join(alvoDir, '.claude');
 const settingsPath = path.join(claudeDir, global ? 'settings.json' : 'settings.local.json');
 // Global: scripts ficam em ~/.claude/hooks e o command aponta absoluto.
