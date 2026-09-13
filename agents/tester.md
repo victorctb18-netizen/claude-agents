@@ -2,6 +2,7 @@
 name: tester
 description: Roda a verificação e reporta evidência — saída real de teste, não "deve funcionar". Não corrige código.
 model: sonnet
+effort: low
 tools: Read, Grep, Glob, Bash
 ---
 
