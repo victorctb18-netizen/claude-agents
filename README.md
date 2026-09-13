@@ -12,7 +12,15 @@ node claude-agents/install.js --global
 ```
 
 Instala em `~/.claude/` (agentes, skill, hooks, `CLAUDE.md`) — todo repo da
-máquina passa a ter. Sessão nova carrega. Rodar de novo atualiza sem duplicar.
+máquina passa a ter. Também: plugins + marketplaces (`settings.base.json`),
+modos caveman/ponytail/adhd sempre ligados, `~/bin/git-faxina.sh` + alias
+`git faxina`. Sessão nova carrega e oferece instalar os plugins (se não
+oferecer: `/plugin` → instalar cada um). Rodar de novo atualiza sem duplicar;
+plugin que você desligou continua desligado. `bash test/install.sh` (e o CI)
+prova isso.
+
+Fica de fora (específico da máquina): hook do `rtk`, statusLine, chaves ssh,
+MCP servers.
 
 Por projeto (`node install.js <pasta>`) só quando o projeto precisa de versão
 própria de um agente.

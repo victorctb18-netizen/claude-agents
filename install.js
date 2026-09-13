@@ -57,10 +57,40 @@ atual.permissions.ask = [...new Set([...(atual.permissions.ask || []), ...(novo.
 fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
 console.log('hooks    ' + settingsPath);
 
+if (global) {
+  // Plugins, marketplaces e permissoes que valem pra qualquer repo. So' une:
+  // plugin que o usuario desligou (false) continua desligado.
+  const base = JSON.parse(fs.readFileSync(path.join(aqui, 'settings.base.json'), 'utf8'));
+  atual.permissions.allow = [...new Set([...(atual.permissions.allow || []), ...base.permissions.allow])];
+  atual.enabledPlugins = { ...base.enabledPlugins, ...(atual.enabledPlugins || {}) };
+  atual.extraKnownMarketplaces = { ...base.extraKnownMarketplaces, ...(atual.extraKnownMarketplaces || {}) };
+  atual.worktree = atual.worktree || base.worktree;
+  fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
+  console.log('plugins  ' + settingsPath);
+
+  // Modos sempre ligados: os plugins leem esses marcadores no SessionStart.
+  for (const [f, v] of [['.caveman-active', 'full'], ['.ponytail-active', 'full'], ['.i-have-adhd-always', '']])
+    if (!fs.existsSync(path.join(claudeDir, f))) fs.writeFileSync(path.join(claudeDir, f), v);
+
+  const bin = path.join(os.homedir(), 'bin');
+  copiar(path.join(aqui, 'bin', 'git-faxina.sh'), path.join(bin, 'git-faxina.sh'));
+  const cp = require('child_process');
+  if (cp.spawnSync('git', ['config', '--global', '--get', 'alias.faxina']).status !== 0)
+    cp.spawnSync('git', ['config', '--global', 'alias.faxina', '!bash ~/bin/git-faxina.sh']);
+}
+
+// Anexa cada secao "## " do trecho que ainda nao existe no CLAUDE.md alvo —
+// assim secao nova no repo chega em maquina ja instalada sem duplicar as antigas.
 const claudeMd = global ? path.join(claudeDir, 'CLAUDE.md') : path.join(alvoDir, 'CLAUDE.md');
-const trecho = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8');
-const existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
-if (existente.includes('## Subagentes')) console.log('mantido  ' + claudeMd + ' (ja tem "## Subagentes")');
-else { fs.writeFileSync(claudeMd, existente + (existente && !existente.endsWith('\n') ? '\n' : '') + '\n' + trecho); console.log('anexado  ' + claudeMd); }
+let existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
+const secoes = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8').split(/^(?=## )/m).filter(s => s.trim());
+// Higiene de git depende do ~/bin/git-faxina.sh: so' no global.
+const novas = secoes.filter(s => (global || !s.startsWith('## Higiene')) && !existente.includes(s.split('\n')[0]));
+if (!novas.length) console.log('mantido  ' + claudeMd);
+else {
+  existente += (existente && !existente.endsWith('\n') ? '\n' : '') + novas.map(s => '\n' + s.trimEnd() + '\n').join('');
+  fs.writeFileSync(claudeMd, existente);
+  console.log('anexado  ' + claudeMd + ' (' + novas.map(s => s.split('\n')[0]).join(', ') + ')');
+}
 
 console.log('\nPronto. Sessao nova (ou /hooks) carrega tudo.');

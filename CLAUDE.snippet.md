@@ -1,3 +1,13 @@
+## Higiene de git (todos os repos)
+
+- **PR mergeado → apagar branch local + worktree** na hora.
+- Fluxo é squash/rebase-merge: `git branch --merged` não detecta branch morta.
+  Sinal confiável = estado do PR (`gh pr list --head <b>`).
+- Ao notar acúmulo de branches/worktrees: rodar `git faxina` (dry-run) e depois
+  `git faxina --apaga`. Script em `~/bin/git-faxina.sh`. Só mexe em branch
+  mergeada (PR MERGED ou grafo mergeado + 0 à frente); nunca `main`, branch
+  atual, ou worktree com alteração não commitada.
+
 ## Subagentes — quando e como delegar
 
 Tarefa grande (3+ arquivos, partes independentes): skill `orchestrator`
