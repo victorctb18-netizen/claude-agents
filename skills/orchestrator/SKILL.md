@@ -27,7 +27,7 @@ Passou no gate → spawn de verdade. Não descreva delegação sem fazer. Se o s
 3. **Decomponha com dono explícito.** Dois workers nunca tocam o mesmo arquivo. Não dá para dividir por arquivo → um worker só.
 4. **workers** em paralelo (máx 4, num único bloco de tool calls). Prompt autocontido: o worker não viu esta conversa.
 5. **Integre você mesmo.** Leia `git diff` real, não o resumo. Passo pós-edição do projeto (cache-bust, build) faltando é responsabilidade sua.
-6. **tester** — lista exata de arquivos tocados e comportamento esperado. Falhou → volte ao passo 3 com o erro colado.
+6. **tester** — lista exata de arquivos tocados e comportamento esperado. Falhou → volte ao passo 3 com o erro colado e o motivo provável. Máximo 2 voltas: a 3ª falha é problema de plano, não de execução — pare, releia o erro no root e replaneje ou reporte.
 7. **reviewer** (e **ui-reviewer** se mexeu em tela) — só depois do tester verde. Prompt mínimo: "revise o diff atual". Não explique a intenção; independência é o valor. Proporcional ao risco: pule se o diff é pequeno e não toca teclado, diálogo, auth, migration ou script auto-instalável — mas diga que pulou.
 8. Commit e PR ficam com você (`superpowers:finishing-a-development-branch`). Subagente nunca commita.
 
