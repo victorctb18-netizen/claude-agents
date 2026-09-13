@@ -1,21 +1,29 @@
 #!/usr/bin/env node
-// Instala agentes, skill e hooks num projeto Claude Code.
+// Instala agentes, skill, hooks e trecho de CLAUDE.md.
 //
-//   node install.js <pasta-do-projeto>
+//   node install.js --global              # ~/.claude — vale pra todo repo da maquina
+//   node install.js <pasta-do-projeto>    # so' naquele projeto (.claude/ dele)
 //
-// Copia (nunca apaga o que ja existe la'):
-//   agents/*.md            -> <proj>/.claude/agents/
-//   skills/*/SKILL.md      -> <proj>/.claude/skills/<nome>/
-//   hooks/hook-*.js        -> <proj>/scripts/        (so' se nao existir)
-//   hooks/hooks.json       -> merge em <proj>/.claude/settings.local.json
+// Global e' o normal. Por projeto so' quando o projeto precisa de agente
+// diferente do global — Claude Code prefere o de .claude/agents/ ao de
+// ~/.claude/agents/ quando o nome coincide.
 //
-// Merge de hooks: por evento, entra so' o que ainda nao esta la' (compara o
-// `command`). permissions.ask e' unido sem duplicar. Resto do settings fica.
+// Nunca apaga o que ja existe: agentes e skill sobrescrevem (sao deste repo),
+// hooks entram so' se o command ainda nao esta la', permissions.ask e' unido,
+// o trecho de CLAUDE.md so' entra se o marcador nao existe.
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const proj = path.resolve(process.argv[2] || '.');
 const aqui = __dirname;
+const global = process.argv.includes('--global');
+const alvoDir = global ? path.join(os.homedir(), '.claude') : path.resolve(process.argv[2] || '.');
+const claudeDir = global ? alvoDir : path.join(alvoDir, '.claude');
+const settingsPath = path.join(claudeDir, global ? 'settings.json' : 'settings.local.json');
+// Global: scripts ficam em ~/.claude/hooks e o command aponta absoluto.
+// Projeto: em scripts/ do projeto, command relativo (roda com cwd no projeto).
+const hooksDir = global ? path.join(claudeDir, 'hooks') : path.join(alvoDir, 'scripts');
+
 const copiar = (de, para, sobrescrever = true) => {
   fs.mkdirSync(path.dirname(para), { recursive: true });
   if (!sobrescrever && fs.existsSync(para)) return console.log('mantido  ' + para);
@@ -24,25 +32,35 @@ const copiar = (de, para, sobrescrever = true) => {
 };
 
 for (const f of fs.readdirSync(path.join(aqui, 'agents')))
-  copiar(path.join(aqui, 'agents', f), path.join(proj, '.claude', 'agents', f));
+  copiar(path.join(aqui, 'agents', f), path.join(claudeDir, 'agents', f));
 
 for (const s of fs.readdirSync(path.join(aqui, 'skills')))
-  copiar(path.join(aqui, 'skills', s, 'SKILL.md'), path.join(proj, '.claude', 'skills', s, 'SKILL.md'));
+  copiar(path.join(aqui, 'skills', s, 'SKILL.md'), path.join(claudeDir, 'skills', s, 'SKILL.md'));
 
-for (const f of fs.readdirSync(path.join(aqui, 'hooks')).filter(f => f.endsWith('.js')))
-  copiar(path.join(aqui, 'hooks', f), path.join(proj, 'scripts', f), false);
+for (const f of fs.readdirSync(path.join(aqui, 'hooks')).filter(f => /\.(js|sh)$/.test(f)))
+  copiar(path.join(aqui, 'hooks', f), path.join(hooksDir, f), global);
 
-const alvo = path.join(proj, '.claude', 'settings.local.json');
 const novo = JSON.parse(fs.readFileSync(path.join(aqui, 'hooks', 'hooks.json'), 'utf8'));
-const atual = fs.existsSync(alvo) ? JSON.parse(fs.readFileSync(alvo, 'utf8')) : {};
+const atual = fs.existsSync(settingsPath) ? JSON.parse(fs.readFileSync(settingsPath, 'utf8')) : {};
 atual.hooks = atual.hooks || {};
 for (const [evento, grupos] of Object.entries(novo.hooks)) {
   const lista = (atual.hooks[evento] = atual.hooks[evento] || []);
   const cmds = new Set(lista.flatMap(g => g.hooks.map(h => h.command)));
-  for (const g of grupos) if (!g.hooks.every(h => cmds.has(h.command))) lista.push(g);
+  for (const g of grupos) {
+    if (global) for (const h of g.hooks)
+      h.command = h.command.replace(/node scripts\/(hook-[a-z-]+\.js)/, (_, f) => 'node "' + path.join(hooksDir, f).replace(/\\/g, '/') + '"');
+    if (!g.hooks.every(h => cmds.has(h.command))) lista.push(g);
+  }
 }
 atual.permissions = atual.permissions || {};
 atual.permissions.ask = [...new Set([...(atual.permissions.ask || []), ...(novo.permissions.ask || [])])];
-fs.writeFileSync(alvo, JSON.stringify(atual, null, 2) + '\n');
-console.log('hooks    ' + alvo);
-console.log('\nPronto. Sessao nova (ou /hooks) carrega tudo. Adapte os agentes ao CLAUDE.md do projeto.');
+fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
+console.log('hooks    ' + settingsPath);
+
+const claudeMd = global ? path.join(claudeDir, 'CLAUDE.md') : path.join(alvoDir, 'CLAUDE.md');
+const trecho = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8');
+const existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
+if (existente.includes('## Subagentes')) console.log('mantido  ' + claudeMd + ' (ja tem "## Subagentes")');
+else { fs.writeFileSync(claudeMd, existente + (existente && !existente.endsWith('\n') ? '\n' : '') + '\n' + trecho); console.log('anexado  ' + claudeMd); }
+
+console.log('\nPronto. Sessao nova (ou /hooks) carrega tudo.');

@@ -1,33 +1,38 @@
 # claude-agents
 
-Subagentes, skill de orquestração e hooks que uso no Claude Code. Feito para
-o hub-contabil (vanilla JS + Flask); em outro projeto, adapte as referências
-ao CLAUDE.md.
+Subagentes com papel fixo, skill de orquestração, hooks e trecho de CLAUDE.md
+para o Claude Code. Genérico: vale em qualquer repo. O que é específico de um
+projeto fica no `.claude/` daquele projeto e sobrepõe o global pelo nome.
 
-## Máquina nova
+## Máquina nova (2 comandos)
 
 ```bash
 git clone https://github.com/victorctb18-netizen/claude-agents
-node claude-agents/install.js caminho/do/projeto
+node claude-agents/install.js --global
 ```
 
-Depois abra uma sessão nova do Claude Code no projeto (ou `/hooks` numa
-sessão aberta). Nada é apagado: agentes e skill sobrescrevem, hooks são
-mesclados em `.claude/settings.local.json`, scripts só entram se não existem.
+Instala em `~/.claude/` (agentes, skill, hooks, `CLAUDE.md`) — todo repo da
+máquina passa a ter. Sessão nova carrega. Rodar de novo atualiza sem duplicar.
+
+Por projeto (`node install.js <pasta>`) só quando o projeto precisa de versão
+própria de um agente.
 
 ## O que tem
 
 | Pasta | Conteúdo |
 |---|---|
-| `agents/` | `explorer` (mapa, só leitura) · `worker` (edita lista fechada de arquivos) · `tester` (roda e cola evidência) · `reviewer` (opus, só o diff) · `ui-reviewer` (opus, tela + `impeccable critique`) · `researcher` (fato externo) |
-| `skills/orchestrator/` | gate delegar-ou-fazer, fluxo explorer → workers → tester → reviewer, contrato de spawn, falha e conclusão |
-| `hooks/` | `hook-node-check.js` (PostToolUse: `node --check` / `py_compile` no arquivo salvo, bloqueia) · `hook-cache-bust.js` (PreToolUse: antes de `git commit`, pergunta se `.js`/`.css` está sem bump de `?v=`) · `hooks.json` (bloco pronto de settings) |
+| `agents/` | `explorer` (mapa, só leitura) · `worker` (edita lista fechada de arquivos, cirúrgico) · `tester` (roda e cola evidência) · `reviewer` (opus, só o diff) · `ui-reviewer` (opus, tela real + `impeccable`/`hallmark` se existirem) · `researcher` (fato externo) |
+| `skills/orchestrator/` | gate delegar-ou-fazer, fluxo explorer → workers → tester → reviewer, contrato de spawn, falha e conclusão, revisão proporcional ao risco |
+| `hooks/` | `hook-node-check.js` (PostToolUse: `node --check` / `py_compile` no arquivo salvo, bloqueia) · `hook-cache-bust.js` (PreToolUse: antes de `git commit`, pergunta se `.js`/`.css` está sem bump de `?v=`; no-op se o projeto não tem `scripts/check-cache-bust.sh`) · `check-cache-bust.sh` · `hooks.json` |
+| `lib/cdp-lib.js` | harness de browser sem dependência (Edge/Chrome headless + servidor estático + stub de `fetch`); copie pra `tests/` de projeto vanilla JS. ~20 linhas por prova de teclado/DOM |
+| `CLAUDE.snippet.md` | seções "Subagentes" e "Autonomia e pronto" — o instalador anexa ao `~/.claude/CLAUDE.md` |
 
-`hook-cache-bust.js` chama `scripts/check-cache-bust.sh`, que é do hub-contabil.
-Em projeto sem `?v=`, apague esse hook do `hooks.json` antes de instalar.
+## Projeto vanilla JS com `?v=` (cache-bust)
 
-## Atualizar o repo a partir do projeto
+Copie `hooks/check-cache-bust.sh` pra `scripts/` do projeto e `lib/cdp-lib.js`
+pra `tests/`. O hook global passa a conferir `?v=` nesse projeto sozinho.
 
-Edite no projeto (`.claude/agents/`, `.claude/skills/orchestrator/`,
-`scripts/hook-*.js`), depois copie de volta e commite aqui. Sem sync
-automático de propósito: o repo é o que já provou valor, não o rascunho.
+## Atualizar
+
+Edite no projeto onde provou valor, copie pra cá, commite. Sem sync automático
+de propósito: o repo é o que já valeu, não o rascunho.
