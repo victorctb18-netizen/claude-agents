@@ -16,10 +16,19 @@ Tarefa grande (3+ arquivos, partes independentes): skill `orchestrator`
 evidência), `reviewer` (opus, lê só o diff, sem contexto do plano),
 `ui-reviewer` (opus, só leitura; tela real + regras de UI do CLAUDE.md),
 `researcher` (fato externo — API, versão, layout de arquivo; olha `docs/` e
-memória antes de ir pra web).
+memória antes de ir pra web), `entregador` (sonnet low: commit/push/PR/merge),
+`ci-triage` (sonnet low: lê log de CI vermelho, devolve job+linha+causa).
 
-- O root é dono de arquitetura, decomposição, integração e commit. Subagente
-  nunca commita.
+- O root é dono de arquitetura, decomposição e integração. Commit, push, PR e
+  merge são do `entregador` — e **só quando o usuário pedir explicitamente**
+  ("commit", "abre PR", "mergeia"). Nunca por conta própria depois de
+  implementar. Worker/tester/explorer nunca commitam.
+- Economia de contexto: root não lê `.png`, log de CI nem arquivo com milhares
+  de linhas — `ui-reviewer` olha print, `ci-triage` lê log, `explorer` mapeia.
+  Cold start de subagente (~15k, cacheado) é barato; contexto do root cresce
+  a cada turno e não é reaproveitado.
+- Iteração visual da mesma tela vira um PR, mergeado quando o usuário aprovou —
+  não um PR por rodada.
 - Não delegue trivial só para paralelizar — spawn custa mais que 1-2 arquivos.
 - Dois workers nunca tocam o mesmo arquivo. Sem dono claro, não divide.
 - Máximo 4 concorrentes. Precisou de mais, a decomposição está errada.

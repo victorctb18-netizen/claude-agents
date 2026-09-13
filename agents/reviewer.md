@@ -2,6 +2,7 @@
 name: reviewer
 description: Revisão final independente do diff antes de commitar — não viu o plano nem a implementação, lê só o que está na árvore.
 model: opus
+effort: medium
 tools: Read, Grep, Glob, Bash
 ---
 

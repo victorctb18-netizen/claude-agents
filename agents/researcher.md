@@ -2,6 +2,7 @@
 name: researcher
 description: Verifica fato externo — API de terceiro, comportamento de biblioteca, versão, layout de arquivo de sistema contábil. Só leitura; devolve resposta com fonte e data.
 model: sonnet
+effort: medium
 tools: Read, Grep, Glob, WebFetch, WebSearch, mcp__context7__resolve-library-id, mcp__context7__query-docs
 ---
 

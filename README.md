@@ -35,7 +35,7 @@ própria de um agente.
 
 | Pasta | Conteúdo |
 |---|---|
-| `agents/` | `explorer` (mapa, só leitura) · `worker` (edita lista fechada de arquivos, cirúrgico) · `tester` (roda e cola evidência) · `reviewer` (opus, só o diff) · `ui-reviewer` (opus, tela real + `impeccable`/`hallmark` se existirem) · `researcher` (fato externo) |
+| `agents/` | `explorer` (mapa, só leitura) · `worker` (edita lista fechada de arquivos, cirúrgico) · `tester` (roda e cola evidência) · `reviewer` (opus, só o diff) · `ui-reviewer` (opus, tela real + `impeccable`/`hallmark` se existirem) · `researcher` (fato externo) · `entregador` (sonnet low: commit/push/PR/merge, só a pedido) · `ci-triage` (sonnet low: log de CI vermelho → job+linha+causa) |
 | `skills/orchestrator/` | gate delegar-ou-fazer, fluxo explorer → workers → tester → reviewer, contrato de spawn, falha e conclusão, revisão proporcional ao risco |
 | `hooks/` | `hook-node-check.js` (PostToolUse: `node --check` / `py_compile` no arquivo salvo, bloqueia) · `hook-cache-bust.js` (PreToolUse: antes de `git commit`, pergunta se `.js`/`.css` está sem bump de `?v=`; no-op se o projeto não tem `scripts/check-cache-bust.sh`) · `check-cache-bust.sh` · `hooks.json` |
 | `lib/cdp-lib.js` | harness de browser sem dependência (Edge/Chrome headless + servidor estático + stub de `fetch`); copie pra `tests/` de projeto vanilla JS. ~20 linhas por prova de teclado/DOM |
