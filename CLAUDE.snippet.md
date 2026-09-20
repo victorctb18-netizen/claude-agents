@@ -32,6 +32,11 @@ memória antes de ir pra web), `entregador` (sonnet low: commit/push/PR/merge),
 - Não delegue trivial só para paralelizar — spawn custa mais que 1-2 arquivos.
 - Dois workers nunca tocam o mesmo arquivo. Sem dono claro, não divide.
 - Máximo 4 concorrentes. Precisou de mais, a decomposição está errada.
+- Passe `model` explícito na chamada do `Agent` em vez de confiar no
+  `model:` do arquivo do agente. Um spawn de `entregador` (arquivo diz
+  `sonnet`) saiu Opus, e o transcript não registra o modelo do subagente —
+  não dá para auditar depois, só o card da UI mostra. O parâmetro explícito
+  tem precedência sobre o frontmatter e torna a causa irrelevante.
 - Instrução do usuário vence esta política.
 
 ## Autonomia e "pronto"
