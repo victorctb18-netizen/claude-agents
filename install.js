@@ -91,7 +91,12 @@ if (global) {
     fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
     console.log('rtk      ligado (' + settingsPath + ')');
   } else {
-    console.log('rtk      nao encontrado no PATH — hook e RTK.md pulados. Instale rtk e rode de novo pra ligar.');
+    // https://github.com/rtk-ai/rtk#installation — um comando por SO.
+    const comando = { win32: 'winget install rtk-ai.rtk', darwin: 'brew install rtk' }[process.platform]
+      || 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh';
+    console.log('rtk      nao encontrado no PATH — hook e RTK.md pulados.');
+    console.log('         instale com: ' + comando);
+    console.log('         depois rode este instalador de novo pra ligar.');
   }
 }
 

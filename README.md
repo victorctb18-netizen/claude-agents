@@ -27,7 +27,19 @@ O instalador copia para `~/.claude/`:
 - os modos caveman, ponytail e adhd, ativos por padrão;
 - o script `~/bin/git-faxina.sh` e o alias `git faxina`;
 - o hook do `rtk` e o `RTK.md`, **só se a máquina já tem `rtk` no PATH** — sem
-  isso o hook quebraria todo comando `Bash` de quem não tem o binário.
+  isso o hook quebraria todo comando `Bash` de quem não tem o binário. Sem
+  `rtk` instalado, o instalador imprime o comando certo pro seu sistema
+  ([rtk-ai/rtk](https://github.com/rtk-ai/rtk)):
+
+  ```powershell
+  winget install rtk-ai.rtk          # Windows
+  ```
+  ```bash
+  brew install rtk                    # macOS
+  curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh   # Linux
+  ```
+
+  Rode `node install.js --global` de novo depois de instalar pra ligar o hook.
 
 Na sessão seguinte, o Claude Code oferece instalar os plugins. Se não oferecer,
 use `/plugin` e instale cada um.

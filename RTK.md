@@ -1,8 +1,22 @@
 # RTK - Rust Token Killer
 
 Proxy de CLI que economiza token em operação de dev (60-90% em `git`, etc.).
-Binário próprio, não vem neste repo — instale antes (ver `rtk --help` / repo
-do rtk) para o hook abaixo funcionar.
+Binário próprio (Rust, open source), não vem neste repo. Repo:
+https://github.com/rtk-ai/rtk
+
+## Instalar
+
+```powershell
+winget install rtk-ai.rtk          # Windows
+```
+
+```bash
+brew install rtk                    # macOS
+curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh   # Linux
+```
+
+Depois rode `node claude-agents/install.js --global` de novo — o instalador
+deste repo só liga o hook e copia este arquivo se detectar `rtk` no PATH.
 
 ## Comandos meta (sempre via rtk direto)
 
