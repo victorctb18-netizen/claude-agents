@@ -19,7 +19,10 @@
     "claude-code-setup@claude-plugins-official": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
     "ponytail@ponytail": true,
-    "i-have-adhd@i-have-adhd": true
+    "i-have-adhd@i-have-adhd": true,
+    "playwright@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "impeccable@impeccable": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": { "source": { "source": "github", "repo": "anthropics/claude-plugins-official" } },

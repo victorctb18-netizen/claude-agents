@@ -19,9 +19,27 @@ node claude-agents/install.js --global
 O instalador copia para `~/.claude/`:
 
 - os agentes, a skill `orchestrator`, os hooks e o trecho de `CLAUDE.md`;
-- os plugins e marketplaces listados em `settings.base.json`;
+- os plugins e marketplaces listados em `settings.base.json`: `caveman`,
+  `ponytail`, `i-have-adhd`, `impeccable`, `frontend-design`, `superpowers`
+  (traz as skills do Matt Pocock junto), `code-review`, `claude-md-management`,
+  `security-guidance`, `code-simplifier`, `claude-code-setup`, `ui-ux-pro-max`,
+  `playwright` e `skill-creator`;
 - os modos caveman, ponytail e adhd, ativos por padrão;
-- o script `~/bin/git-faxina.sh` e o alias `git faxina`.
+- o script `~/bin/git-faxina.sh` e o alias `git faxina`;
+- o hook do `rtk` e o `RTK.md`, **só se a máquina já tem `rtk` no PATH** — sem
+  isso o hook quebraria todo comando `Bash` de quem não tem o binário. Sem
+  `rtk` instalado, o instalador imprime o comando certo pro seu sistema
+  ([rtk-ai/rtk](https://github.com/rtk-ai/rtk)):
+
+  ```powershell
+  winget install rtk-ai.rtk          # Windows
+  ```
+  ```bash
+  brew install rtk                    # macOS
+  curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh   # Linux
+  ```
+
+  Rode `node install.js --global` de novo depois de instalar pra ligar o hook.
 
 Na sessão seguinte, o Claude Code oferece instalar os plugins. Se não oferecer,
 use `/plugin` e instale cada um.
@@ -37,8 +55,8 @@ instale em cada uma.
 $env:CLAUDE_CONFIG_DIR="$HOME\.claude-2"; node claude-agents/install.js --global
 ```
 
-**Não incluído** (depende da máquina): hook do `rtk`, statusLine, chaves SSH e
-servidores MCP.
+**Não incluído** (depende da máquina): binário do `rtk` em si (só o hook, e
+condicional — veja acima), statusLine, chaves SSH e servidores MCP.
 
 **Instalação por projeto** (`node install.js <pasta>`): use apenas quando o
 projeto precisa de uma versão própria de algum agente.
@@ -85,6 +103,8 @@ arquitetura e integra o resultado; os subagentes executam partes delimitadas.
 | `lib/cdp-lib.js` | Harness de navegador sem dependências (Edge/Chrome headless, servidor estático, stub de `fetch`) para testes de teclado e DOM. |
 | `CLAUDE.snippet.md` | Seções "Subagentes" e "Autonomia e pronto", anexadas ao `~/.claude/CLAUDE.md` pelo instalador. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
+| `settings.base.json` | Plugins, marketplaces e permissões globais que o instalador une ao `settings.json`. |
+| `RTK.md` | Comandos do `rtk`; só é copiado se a máquina já tem o binário. |
 
 ## Projetos em JavaScript puro com `?v=`
 
