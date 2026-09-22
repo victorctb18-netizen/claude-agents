@@ -78,12 +78,29 @@ if (global) {
   const cp = require('child_process');
   if (cp.spawnSync('git', ['config', '--global', '--get', 'alias.faxina']).status !== 0)
     cp.spawnSync('git', ['config', '--global', 'alias.faxina', '!bash ~/bin/git-faxina.sh']);
+
+  // rtk e' binario a parte (nao vem neste repo). So' liga o hook se a maquina
+  // ja tem rtk no PATH — sem isso todo comando Bash quebraria pra quem nao tem.
+  var rtkLigado = cp.spawnSync('rtk', ['--version'], { shell: true }).status === 0;
+  if (rtkLigado) {
+    copiar(path.join(aqui, 'RTK.md'), path.join(claudeDir, 'RTK.md'));
+    const rtkCmd = 'rtk hook claude';
+    const lista = (atual.hooks.PreToolUse = atual.hooks.PreToolUse || []);
+    const jaTem = lista.some(g => g.hooks.some(h => h.command === rtkCmd));
+    if (!jaTem) lista.unshift({ matcher: 'Bash', hooks: [{ type: 'command', command: rtkCmd }] });
+    fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
+    console.log('rtk      ligado (' + settingsPath + ')');
+  } else {
+    console.log('rtk      nao encontrado no PATH — hook e RTK.md pulados. Instale rtk e rode de novo pra ligar.');
+  }
 }
 
 // Anexa cada secao "## " do trecho que ainda nao existe no CLAUDE.md alvo —
 // assim secao nova no repo chega em maquina ja instalada sem duplicar as antigas.
 const claudeMd = global ? path.join(claudeDir, 'CLAUDE.md') : path.join(alvoDir, 'CLAUDE.md');
 let existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
+if (typeof rtkLigado !== 'undefined' && rtkLigado && !existente.includes('@RTK.md'))
+  existente = '@RTK.md\n\n' + existente;
 const secoes = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8').split(/^(?=## )/m).filter(s => s.trim());
 // Higiene de git depende do ~/bin/git-faxina.sh: so' no global.
 const novas = secoes.filter(s => (global || !s.startsWith('## Higiene')) && !existente.includes(s.split('\n')[0].replace(/^#+/, '')));
