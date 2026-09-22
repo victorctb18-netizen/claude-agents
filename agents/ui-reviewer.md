@@ -1,7 +1,7 @@
 ---
 name: ui-reviewer
 description: Revisão de UI/UX de uma tela existente — hierarquia, estados, teclado, consistência com a identidade do app. Só leitura; devolve lista arquivo:linha para o worker.
-model: sonnet
+model: claude-opus-5-5
 effort: medium
 tools: Read, Grep, Glob, Bash, Skill
 ---
