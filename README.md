@@ -1,52 +1,99 @@
 # claude-agents
 
-Subagentes com papel fixo, skill de orquestração, hooks e trecho de CLAUDE.md
-para o Claude Code. Genérico: vale em qualquer repo. O que é específico de um
-projeto fica no `.claude/` daquele projeto e sobrepõe o global pelo nome.
+Configuração compartilhada do Claude Code: subagentes com papéis definidos, uma
+skill de orquestração, hooks de verificação e um trecho padrão de `CLAUDE.md`.
 
-## Máquina nova (2 comandos)
+O conteúdo é genérico e vale para qualquer repositório. Regras específicas de um
+projeto ficam no `.claude/` daquele projeto; um agente com o mesmo nome no
+projeto substitui a versão global.
+
+## Instalação
+
+Em uma máquina nova, bastam dois comandos:
 
 ```bash
 git clone https://github.com/victorctb18-netizen/claude-agents
 node claude-agents/install.js --global
 ```
 
-Instala em `~/.claude/` (agentes, skill, hooks, `CLAUDE.md`) — todo repo da
-máquina passa a ter. Também: plugins + marketplaces (`settings.base.json`),
-modos caveman/ponytail/adhd sempre ligados, `~/bin/git-faxina.sh` + alias
-`git faxina`. Sessão nova carrega e oferece instalar os plugins (se não
-oferecer: `/plugin` → instalar cada um). Rodar de novo atualiza sem duplicar;
-plugin que você desligou continua desligado. `bash test/install.sh` (e o CI)
-prova isso.
+O instalador copia para `~/.claude/`:
 
-Várias contas do Claude: uma pasta de config por conta, instale em cada:
+- os agentes, a skill `orchestrator`, os hooks e o trecho de `CLAUDE.md`;
+- os plugins e marketplaces listados em `settings.base.json`;
+- os modos caveman, ponytail e adhd, ativos por padrão;
+- o script `~/bin/git-faxina.sh` e o alias `git faxina`.
+
+Na sessão seguinte, o Claude Code oferece instalar os plugins. Se não oferecer,
+use `/plugin` e instale cada um.
+
+O instalador pode ser executado novamente para atualizar: não duplica entradas e
+mantém desligado qualquer plugin que você tenha desativado. O teste
+`bash test/install.sh` (também executado no CI) verifica esse comportamento.
+
+**Mais de uma conta do Claude:** use uma pasta de configuração por conta e
+instale em cada uma.
 
 ```powershell
 $env:CLAUDE_CONFIG_DIR="$HOME\.claude-2"; node claude-agents/install.js --global
 ```
 
-Fica de fora (específico da máquina): hook do `rtk`, statusLine, chaves ssh,
-MCP servers.
+**Não incluído** (depende da máquina): hook do `rtk`, statusLine, chaves SSH e
+servidores MCP.
 
-Por projeto (`node install.js <pasta>`) só quando o projeto precisa de versão
-própria de um agente.
+**Instalação por projeto** (`node install.js <pasta>`): use apenas quando o
+projeto precisa de uma versão própria de algum agente.
 
-## O que tem
+## Subagentes
 
-| Pasta | Conteúdo |
+Cada subagente tem uma única responsabilidade. A sessão principal decide a
+arquitetura e integra o resultado; os subagentes executam partes delimitadas.
+
+### Modelo e objetivo
+
+| Agente | Modelo | Esforço | Objetivo |
+|---|---|---|---|
+| `explorer` | Sonnet | baixo | Entregar um mapa do código antes de qualquer mudança. |
+| `worker` | Sonnet | médio | Implementar uma tarefa delimitada, sem sair dos arquivos autorizados. |
+| `tester` | Sonnet | baixo | Provar com a saída real dos testes que a mudança funciona. |
+| `reviewer` | Opus 5.5 (`claude-opus-5-5`) | médio | Achar defeitos no diff com olhar independente, antes do commit. |
+| `ui-reviewer` | Opus 5.5 (`claude-opus-5-5`) | médio | Apontar problemas de uso de uma tela, com arquivo e linha. |
+| `researcher` | Sonnet | médio | Confirmar um fato externo, com fonte e data. |
+| `entregador` | Sonnet | baixo | Commitar, subir, abrir PR e mergear a pedido do usuário. |
+| `ci-triage` | Sonnet | baixo | Dizer por que o CI falhou: job, linha e causa provável. |
+
+### Escopo e uso
+
+| Agente | O que faz | Pode editar? | Quando usar |
+|---|---|---|---|
+| `explorer` | Localiza onde fica cada coisa, quem chama o quê e qual é o fluxo real. | Não | Antes de alterar código desconhecido ou arquivos muito grandes. |
+| `worker` | Implementa dentro de uma lista fechada de arquivos. | Sim | Partes independentes de uma tarefa maior. Dois workers nunca tocam o mesmo arquivo. |
+| `tester` | Executa testes e verificações e devolve a saída. | Não | Depois da implementação. |
+| `reviewer` | Lê só o diff, sem conhecer o plano. | Não | Antes de commitar mudanças relevantes. |
+| `ui-reviewer` | Revisa a tela real: hierarquia, estados, teclado e consistência visual. Usa `impeccable`/`hallmark` quando disponíveis. | Não | Ao criar ou alterar interface. |
+| `researcher` | Consulta documentação de APIs, bibliotecas, versões e formatos de arquivo. | Não | Quando a resposta depende de algo fora do repositório. |
+| `entregador` | Executa o fluxo de git e GitHub. | Apenas git | Somente quando o usuário pede explicitamente. |
+| `ci-triage` | Lê o log de um CI com falha. | Não | Quando o CI falha. |
+
+## Conteúdo do repositório
+
+| Caminho | Conteúdo |
 |---|---|
-| `agents/` | `explorer` (mapa, só leitura) · `worker` (edita lista fechada de arquivos, cirúrgico) · `tester` (roda e cola evidência) · `reviewer` (opus, só o diff) · `ui-reviewer` (opus, tela real + `impeccable`/`hallmark` se existirem) · `researcher` (fato externo) · `entregador` (sonnet low: commit/push/PR/merge, só a pedido) · `ci-triage` (sonnet low: log de CI vermelho → job+linha+causa) |
-| `skills/orchestrator/` | gate delegar-ou-fazer, fluxo explorer → workers → tester → reviewer, contrato de spawn, falha e conclusão, revisão proporcional ao risco |
-| `hooks/` | `hook-node-check.js` (PostToolUse: `node --check` / `py_compile` no arquivo salvo, bloqueia) · `hook-cache-bust.js` (PreToolUse: antes de `git commit`, pergunta se `.js`/`.css` está sem bump de `?v=`; no-op se o projeto não tem `scripts/check-cache-bust.sh`) · `check-cache-bust.sh` · `hooks.json` |
-| `lib/cdp-lib.js` | harness de browser sem dependência (Edge/Chrome headless + servidor estático + stub de `fetch`); copie pra `tests/` de projeto vanilla JS. ~20 linhas por prova de teclado/DOM |
-| `CLAUDE.snippet.md` | seções "Subagentes" e "Autonomia e pronto" — o instalador anexa ao `~/.claude/CLAUDE.md` |
+| `agents/` | Definição dos subagentes da tabela acima. |
+| `skills/orchestrator/` | Decide entre delegar ou fazer direto; conduz o fluxo explorer → workers → tester → reviewer, com revisão proporcional ao risco. |
+| `hooks/hook-node-check.js` | Após salvar um arquivo, roda `node --check` ou `py_compile` e bloqueia se houver erro de sintaxe. |
+| `hooks/hook-cache-bust.js` | Antes de `git commit`, avisa se um `.js`/`.css` mudou sem atualizar o `?v=`. Só atua em projetos com `scripts/check-cache-bust.sh`. |
+| `lib/cdp-lib.js` | Harness de navegador sem dependências (Edge/Chrome headless, servidor estático, stub de `fetch`) para testes de teclado e DOM. |
+| `CLAUDE.snippet.md` | Seções "Subagentes" e "Autonomia e pronto", anexadas ao `~/.claude/CLAUDE.md` pelo instalador. |
+| `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
 
-## Projeto vanilla JS com `?v=` (cache-bust)
+## Projetos em JavaScript puro com `?v=`
 
-Copie `hooks/check-cache-bust.sh` pra `scripts/` do projeto e `lib/cdp-lib.js`
-pra `tests/`. O hook global passa a conferir `?v=` nesse projeto sozinho.
+Copie `hooks/check-cache-bust.sh` para `scripts/` do projeto e `lib/cdp-lib.js`
+para `tests/`. O hook global passa a verificar o `?v=` nesse projeto
+automaticamente.
 
-## Atualizar
+## Como atualizar
 
-Edite no projeto onde provou valor, copie pra cá, commite. Sem sync automático
-de propósito: o repo é o que já valeu, não o rascunho.
+Altere primeiro no projeto em que a mudança se provou útil, depois copie para
+este repositório e faça o commit. Não há sincronização automática, de propósito:
+aqui entra apenas o que já foi validado na prática.
