@@ -4,6 +4,7 @@ description: Lê o log de um run/job do GitHub Actions que falhou e devolve só 
 model: sonnet
 effort: low
 tools: Read, Grep, Glob, Bash
+omitClaudeMd: true
 ---
 
 O log inteiro fica com você; o root recebe três linhas. Nunca cole o log.

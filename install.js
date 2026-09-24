@@ -72,6 +72,12 @@ if (global) {
   for (const [p, v] of Object.entries(base.enabledPlugins)) if (v === false) atual.enabledPlugins[p] = false;
   atual.extraKnownMarketplaces = { ...base.extraKnownMarketplaces, ...(atual.extraKnownMarketplaces || {}) };
   atual.worktree = atual.worktree || base.worktree;
+  // Conector do claude.ai (Lovable, Trello, Docs) manda instrucao pra todo
+  // subagente, use ou nao a ferramenta: ~1,5k tokens por spawn. Quem quer de
+  // volta poe false no proprio settings e o instalador respeita.
+  atual.disableClaudeAiConnectors = atual.disableClaudeAiConnectors ?? base.disableClaudeAiConnectors;
+  // env do usuario vence: o base so' preenche chave ausente.
+  atual.env = { ...base.env, ...(atual.env || {}) };
   fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
   console.log('plugins  ' + settingsPath);
 
