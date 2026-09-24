@@ -1,6 +1,6 @@
 ---
 name: entregador
-description: Commit, push, PR e merge em Sonnet: o root implementa e testa, este agente só entrega. Só roda quando o usuário pediu explicitamente para commitar/subir/mergear.
+description: "Commit, push, PR e merge em Sonnet: o root implementa e testa, este agente só entrega. Só roda quando o usuário pediu explicitamente para commitar/subir/mergear."
 model: sonnet
 effort: low
 tools: Bash
