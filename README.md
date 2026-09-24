@@ -86,6 +86,23 @@ arquitetura e integra o resultado; os subagentes executam partes delimitadas.
 | `entregador` | Sonnet | baixo | Commitar, subir, abrir PR e mergear a pedido do usuário. |
 | `ci-triage` | Sonnet | baixo | Dizer por que o CI falhou: job, linha e causa provável. |
 
+`entregador` e `ci-triage` têm `omitClaudeMd: true`: rodam sem os CLAUDE.md e
+a memória, porque tudo que usam vem do prompt (o pacote de entrega, o id do
+run). Medido num spawn vazio: o início cai de ~20k para ~11k tokens. Os outros
+papéis precisam das regras do projeto e carregam o CLAUDE.md normalmente.
+
+O `entregador` vai além: só a ferramenta `Bash`, mensagem de commit e corpo do
+PR chegam como arquivo (`-F`, `--body-file`) em vez de texto que ele
+redigitaria, e cada etapa é uma chamada encadeada com `&&`. O
+`settings.base.json` põe `PONYTAIL_SUBAGENT_MATCHER` no `env`, então o ponytail
+(~1,5k tokens por spawn) só entra em quem escreve código. Início medido: ~7k
+tokens num spawn vazio. Numa sessão interativa entram ainda as instruções dos
+servidores MCP conectados, que chegam a todo subagente, use ele a ferramenta ou
+não, e não têm corte por agente. Por isso o `settings.base.json` liga
+`disableClaudeAiConnectors`: os conectores do claude.ai (Lovable, Trello, Docs)
+eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
+`settings.json`; o instalador não sobrescreve.
+
 ### Escopo e uso
 
 | Agente | O que faz | Pode editar? | Quando usar |

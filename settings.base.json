@@ -32,5 +32,9 @@
     "ponytail": { "source": { "source": "git", "url": "https://github.com/DietrichGebert/ponytail.git" } },
     "i-have-adhd": { "source": { "source": "github", "repo": "ayghri/i-have-adhd" } }
   },
-  "worktree": { "baseRef": "fresh" }
+  "worktree": { "baseRef": "fresh" },
+  "disableClaudeAiConnectors": true,
+  "env": {
+    "PONYTAIL_SUBAGENT_MATCHER": "^(worker|reviewer|plan|general-purpose|claude|code-simplifier:code-simplifier)$"
+  }
 }

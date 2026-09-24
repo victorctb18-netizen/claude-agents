@@ -32,18 +32,18 @@ memória antes de ir pra web), `entregador` (sonnet low: commit/push/PR/merge),
   implementar. Worker/tester/explorer nunca commitam.
 - Economia de contexto: root não lê `.png`, log de CI nem arquivo com milhares
   de linhas — `ui-reviewer` olha print, `ci-triage` lê log, `explorer` mapeia.
-  Cold start de subagente (~15k, cacheado) é barato; contexto do root cresce
-  a cada turno e não é reaproveitado.
+  Cold start de subagente (~20k tokens, cacheado; ~11k com `omitClaudeMd`)
+  é barato; contexto do root cresce a cada turno e não é reaproveitado.
 - Iteração visual da mesma tela vira um PR, mergeado quando o usuário aprovou —
   não um PR por rodada.
 - Não delegue trivial só para paralelizar — spawn custa mais que 1-2 arquivos.
 - Dois workers nunca tocam o mesmo arquivo. Sem dono claro, não divide.
 - Máximo 4 concorrentes. Precisou de mais, a decomposição está errada.
 - Passe `model` explícito na chamada do `Agent` em vez de confiar no
-  `model:` do arquivo do agente. Um spawn de `entregador` (arquivo diz
-  `sonnet`) saiu Opus, e o transcript não registra o modelo do subagente —
-  não dá para auditar depois, só o card da UI mostra. O parâmetro explícito
-  tem precedência sobre o frontmatter e torna a causa irrelevante.
+  `model:` do arquivo do agente: um spawn de `entregador` (arquivo diz
+  `sonnet`) já saiu Opus, e o parâmetro tem precedência sobre o frontmatter.
+  Auditoria: `<sessão>/subagents/agent-*.meta.json` guarda o modelo pedido e
+  o `message.model` do transcript, o que rodou de fato.
 - Instrução do usuário vence esta política.
 
 ## Autonomia e "pronto"
