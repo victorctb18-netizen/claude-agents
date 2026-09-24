@@ -18,14 +18,17 @@ node claude-agents/install.js --global
 
 O instalador copia para `~/.claude/`:
 
-- os agentes, a skill `orchestrator`, os hooks e o trecho de `CLAUDE.md`;
+- os agentes, as skills de `skills/` (pasta inteira, com os arquivos que cada
+  uma traz), os hooks e o trecho de `CLAUDE.md`;
 - os plugins e marketplaces listados em `settings.base.json`: `caveman`,
-  `ponytail`, `i-have-adhd`, `impeccable`, `frontend-design`, `superpowers`
-  (traz as skills do Matt Pocock junto), `code-review`, `claude-md-management`,
-  `security-guidance`, `code-simplifier`, `claude-code-setup`, `ui-ux-pro-max`,
-  `playwright` e `skill-creator`;
+  `ponytail`, `i-have-adhd`, `impeccable`, `claude-md-management`,
+  `security-guidance`, `code-simplifier`, `claude-code-setup`, `playwright` e
+  `skill-creator`;
 - os modos caveman, ponytail e adhd, ativos por padrão;
 - o script `~/bin/git-faxina.sh` e o alias `git faxina`;
+- o driver de merge `~/bin/merge-mecanico.js` (registrado no git global como
+  `merge.mecanico`), que resolve sozinho conflito de `?v=` e de changelog
+  `.json` nos repos que pedem por `.gitattributes`;
 - o hook do `rtk` e o `RTK.md`, **só se a máquina já tem `rtk` no PATH** — sem
   isso o hook quebraria todo comando `Bash` de quem não tem o binário. Sem
   `rtk` instalado, o instalador imprime o comando certo pro seu sistema
@@ -45,7 +48,11 @@ Na sessão seguinte, o Claude Code oferece instalar os plugins. Se não oferecer
 use `/plugin` e instale cada um.
 
 O instalador pode ser executado novamente para atualizar: não duplica entradas e
-mantém desligado qualquer plugin que você tenha desativado. O teste
+mantém desligado qualquer plugin que você tenha desativado. Plugin marcado
+`false` no `settings.base.json` saiu do pacote e é desligado também em máquina
+já instalada: `superpowers`, `frontend-design`, `ui-ux-pro-max` e `code-review`
+(sem uso em 40 sessões; sobrepunham `grilling`, `diagnosing-bugs`, `tdd`,
+`impeccable` e o `reviewer`, e custavam descrição em toda sessão). O teste
 `bash test/install.sh` (também executado no CI) verifica esse comportamento.
 
 **Mais de uma conta do Claude:** use uma pasta de configuração por conta e
@@ -97,20 +104,42 @@ arquitetura e integra o resultado; os subagentes executam partes delimitadas.
 | Caminho | Conteúdo |
 |---|---|
 | `agents/` | Definição dos subagentes da tabela acima. |
-| `skills/orchestrator/` | Decide entre delegar ou fazer direto; conduz o fluxo explorer → workers → tester → reviewer, com revisão proporcional ao risco. |
+| `skills/orchestrator/` | Decide entre delegar ou fazer direto; conduz o fluxo explorer → workers → tester → reviewer, com revisão proporcional ao risco, economia de tokens por spawn e a skill certa por etapa. |
+| `skills/prova-tela/` | Prova de teclado/DOM em navegador headless sem login: `SKILL.md` + `cdp-lib.js` (Edge/Chrome, servidor estático, stub de `fetch`, `--prints`). |
+| `skills/resolving-merge-conflicts/` | Fork do `mattpocock-skills`: triagem mecânica (`?v=`, changelog) antes de ler a intenção de cada lado. |
+| `skills/to-spec/` | Fork do `mattpocock-skills`: marca `[NEEDS CLARIFICATION]` e pergunta tudo numa mensagem antes de publicar. |
+| `skills/mapping-and-dispatching-issues/` | Pilha de issues → mapa priorizado → sessões/worktrees em paralelo. |
+| `skills/pencil-design/` | Desenhar em arquivo `.pen` via MCP do Pencil. |
 | `hooks/hook-node-check.js` | Após salvar um arquivo, roda `node --check` ou `py_compile` e bloqueia se houver erro de sintaxe. |
 | `hooks/hook-cache-bust.js` | Antes de `git commit`, avisa se um `.js`/`.css` mudou sem atualizar o `?v=`. Só atua em projetos com `scripts/check-cache-bust.sh`. |
-| `lib/cdp-lib.js` | Harness de navegador sem dependências (Edge/Chrome headless, servidor estático, stub de `fetch`) para testes de teclado e DOM. |
-| `CLAUDE.snippet.md` | Seções "Subagentes" e "Autonomia e pronto", anexadas ao `~/.claude/CLAUDE.md` pelo instalador. |
+| `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes" e "Autonomia e pronto", anexadas ao `~/.claude/CLAUDE.md` pelo instalador. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
+| `bin/merge-mecanico.js` | Driver de merge: `?v=` vizinho e changelog `.json` com inserção dos dois lados. Resto do conflito volta com marcador. Prova: `bash test/merge.sh`. |
 | `settings.base.json` | Plugins, marketplaces e permissões globais que o instalador une ao `settings.json`. |
 | `RTK.md` | Comandos do `rtk`; só é copiado se a máquina já tem o binário. |
 
 ## Projetos em JavaScript puro com `?v=`
 
-Copie `hooks/check-cache-bust.sh` para `scripts/` do projeto e `lib/cdp-lib.js`
-para `tests/`. O hook global passa a verificar o `?v=` nesse projeto
-automaticamente.
+Copie `hooks/check-cache-bust.sh` para `scripts/` do projeto: o hook global
+passa a verificar o `?v=` nesse projeto automaticamente. Para o conflito de
+`?v=` entre PRs se resolver sozinho, acrescente ao `.gitattributes` do projeto:
+
+```
+*.html merge=mecanico
+caminho/do/changelog.json merge=mecanico
+```
+
+A prova de tela (`cdp-lib.js`) vem com a skill `prova-tela`, que a copia para
+`tests/` na primeira vez.
+
+## Skills de fora
+
+As skills do Matt Pocock (`grilling`, `tdd`, `diagnosing-bugs`, `retro`...)
+e `impeccable`/`hallmark` vêm dos repos de origem, não daqui. Clone de repo de
+skills fica **fora** de `~/.claude/skills/`: lá dentro o Claude Code descobre as
+subpastas de novo com prefixo (`mattpocock-skills:tdd`) e cada skill aparece
+duas vezes na listagem de toda sessão. Fork de skill de fora (como `to-spec`)
+mora aqui e o instalador sobrescreve a cópia original.
 
 ## Como atualizar
 

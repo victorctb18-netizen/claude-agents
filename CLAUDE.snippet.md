@@ -7,6 +7,13 @@
   `git faxina --apaga`. Script em `~/bin/git-faxina.sh`. Só mexe em branch
   mergeada (PR MERGED ou grafo mergeado + 0 à frente); nunca `main`, branch
   atual, ou worktree com alteração não commitada.
+- Todos os repos têm "Automatically delete head branches" ligado — a branch
+  remota some sozinha no merge.
+- **Nova sessão = nova branch** (padrão, ~90% dos casos). Antes do primeiro
+  Edit/Write de código: branch nova a partir de `main` atualizado (worktree se
+  a árvore tem alteração não commitada de outra sessão). Só reaproveitar a
+  branch atual se a tarefa for claramente continuação dela (mesmo assunto, PR
+  ainda aberto — `gh pr list --head <branch>`); na dúvida, perguntar.
 
 ## Subagentes — quando e como delegar
 

@@ -35,8 +35,11 @@ const copiar = (de, para, sobrescrever = true) => {
 for (const f of fs.readdirSync(path.join(aqui, 'agents')))
   copiar(path.join(aqui, 'agents', f), path.join(claudeDir, 'agents', f));
 
-for (const s of fs.readdirSync(path.join(aqui, 'skills')))
-  copiar(path.join(aqui, 'skills', s, 'SKILL.md'), path.join(claudeDir, 'skills', s, 'SKILL.md'));
+// Pasta inteira: skill leva arquivo junto (prova-tela traz o cdp-lib.js).
+for (const s of fs.readdirSync(path.join(aqui, 'skills'))) {
+  fs.cpSync(path.join(aqui, 'skills', s), path.join(claudeDir, 'skills', s), { recursive: true });
+  console.log('copiado  ' + path.join(claudeDir, 'skills', s));
+}
 
 for (const f of fs.readdirSync(path.join(aqui, 'hooks')).filter(f => /\.(js|sh)$/.test(f)))
   copiar(path.join(aqui, 'hooks', f), path.join(hooksDir, f), global);
@@ -60,10 +63,13 @@ console.log('hooks    ' + settingsPath);
 
 if (global) {
   // Plugins, marketplaces e permissoes que valem pra qualquer repo. So' une:
-  // plugin que o usuario desligou (false) continua desligado.
+  // plugin que o usuario desligou (false) continua desligado. false no base
+  // e' plugin tirado do pacote: desliga tambem em maquina ja instalada, senao
+  // a decisao so' valeria pra maquina nova.
   const base = JSON.parse(fs.readFileSync(path.join(aqui, 'settings.base.json'), 'utf8'));
   atual.permissions.allow = [...new Set([...(atual.permissions.allow || []), ...base.permissions.allow])];
   atual.enabledPlugins = { ...base.enabledPlugins, ...(atual.enabledPlugins || {}) };
+  for (const [p, v] of Object.entries(base.enabledPlugins)) if (v === false) atual.enabledPlugins[p] = false;
   atual.extraKnownMarketplaces = { ...base.extraKnownMarketplaces, ...(atual.extraKnownMarketplaces || {}) };
   atual.worktree = atual.worktree || base.worktree;
   fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
@@ -78,6 +84,11 @@ if (global) {
   const cp = require('child_process');
   if (cp.spawnSync('git', ['config', '--global', '--get', 'alias.faxina']).status !== 0)
     cp.spawnSync('git', ['config', '--global', 'alias.faxina', '!bash ~/bin/git-faxina.sh']);
+  // Driver de conflito mecanico (?v=, changelog .json). So' age em repo que
+  // pede por .gitattributes (merge=mecanico); nos outros o git nem chama.
+  copiar(path.join(aqui, 'bin', 'merge-mecanico.js'), path.join(bin, 'merge-mecanico.js'));
+  cp.spawnSync('git', ['config', '--global', 'merge.mecanico.name', 'conflito mecanico: ?v= e changelog json']);
+  cp.spawnSync('git', ['config', '--global', 'merge.mecanico.driver', 'node ~/bin/merge-mecanico.js %O %A %B %P']);
 
   // rtk e' binario a parte (nao vem neste repo). So' liga o hook se a maquina
   // ja tem rtk no PATH — sem isso todo comando Bash quebraria pra quem nao tem.
@@ -106,7 +117,9 @@ const claudeMd = global ? path.join(claudeDir, 'CLAUDE.md') : path.join(alvoDir,
 let existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
 if (typeof rtkLigado !== 'undefined' && rtkLigado && !existente.includes('@RTK.md'))
   existente = '@RTK.md\n\n' + existente;
-const secoes = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8').split(/^(?=## )/m).filter(s => s.trim());
+// CRLF -> LF: checkout no Windows (autocrlf) deixa CR no fim do titulo e o
+// includes() abaixo nao achava a secao ja instalada e anexava de novo.
+const secoes = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8').replace(/\r\n/g, '\n').split(/^(?=## )/m).filter(s => s.trim());
 // Higiene de git depende do ~/bin/git-faxina.sh: so' no global.
 const novas = secoes.filter(s => (global || !s.startsWith('## Higiene')) && !existente.includes(s.split('\n')[0].replace(/^#+/, '')));
 if (!novas.length) console.log('mantido  ' + claudeMd);
