@@ -32,6 +32,7 @@
   "worktree": { "baseRef": "fresh" },
   "disableClaudeAiConnectors": true,
   "env": {
-    "PONYTAIL_SUBAGENT_MATCHER": "^(worker|reviewer|plan|general-purpose|claude)$"
+    "PONYTAIL_SUBAGENT_MATCHER": "^(worker|reviewer|plan|general-purpose|claude)$",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5-5"
   }
 }
