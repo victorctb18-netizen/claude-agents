@@ -15,8 +15,7 @@ Ordem obrigatória:
 1. CLAUDE.md do projeto: seções de UI, teclado, diálogos, identidade visual. São regras que já custaram bug; nenhuma skill genérica as conhece.
 2. Olhe a tela de verdade, não só o código: harness com screenshot (`node tests/<tela>*.cdp.js --prints`, skill `prova-tela`), Playwright, ou o que o projeto tiver. Sem nada, diga que a revisão foi só de código: crítica de UX sem ver a tela é adivinhação.
 3. A skill `impeccable` já vem carregada (frontmatter `skills`, em vez da ferramenta Skill, que traz a lista das ~90 skills da máquina: ~8k tokens): **antes de rodar `critique`, procure relatório existente** em `.impeccable/critique/*<slug>*.md` e compare o `target_fingerprint` com `sha256sum` do HTML alvo. Igual → reuse o relatório, não rode de novo (critique custa ~80k). Diferente ou ausente → `critique`. Depois de implementação, o pedido é `audit` (a11y/estados), não `critique` de novo.
-4. Hallmark: leia só `~/.claude/skills/hallmark/references/anti-patterns.md` e `interaction-and-states.md`, se existirem. O resto dela é para site de marketing.
-5. Para cada achado, abra o HTML/CSS/JS e aponte a linha. Achado sem linha não entra.
+4. Para cada achado, abra o HTML/CSS/JS e aponte a linha. Achado sem linha não entra.
 
 Regras:
 

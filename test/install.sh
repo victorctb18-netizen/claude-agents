@@ -7,7 +7,7 @@ export HOME="$(mktemp -d)"
 export USERPROFILE="$HOME"  # os.homedir() no Windows le USERPROFILE
 mkdir -p "$HOME/.claude"
 printf '# Higiene de git (todos os repos)\nja tenho, com outro nivel de titulo\n' > "$HOME/.claude/CLAUDE.md"
-echo '{"model":"opus","enabledPlugins":{"caveman@caveman":false,"superpowers@claude-plugins-official":true},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}]}}' > "$HOME/.claude/settings.json"
+echo '{"model":"opus","enabledPlugins":{"caveman@caveman":false,"superpowers@claude-plugins-official":true,"code-simplifier@claude-plugins-official":true},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}]}}' > "$HOME/.claude/settings.json"
 
 node "$repo/install.js" --global >/dev/null
 cp "$HOME/.claude/settings.json" /tmp/s1.json; cp "$HOME/.claude/CLAUDE.md" /tmp/c1.md
@@ -20,10 +20,11 @@ const s = require(process.env.HOME + "/.claude/settings.json"), a = require("ass
 a.equal(s.model, "opus");
 a.equal(s.enabledPlugins["caveman@caveman"], false, "desligado pelo usuario continua desligado");
 a.equal(s.enabledPlugins["ponytail@ponytail"], true);
-a.equal(s.enabledPlugins["superpowers@claude-plugins-official"], false, "tirado do pacote desliga em maquina ja instalada");
+a.equal(s.enabledPlugins["code-simplifier@claude-plugins-official"], false, "tirado do pacote desliga em maquina ja instalada");
+a.equal(s.enabledPlugins["superpowers@claude-plugins-official"], true, "fora do pacote fica como o usuario deixou");
 a.ok(s.hooks.PreToolUse.some(g => g.hooks[0].command === "rtk hook claude"));
 a.equal(s.hooks.PreToolUse.length, 2);
-a.equal(s.hooks.PostToolUse.length, 1);
+a.equal(s.hooks.PostToolUse.length, 2);
 const m = new RegExp(s.env.PONYTAIL_SUBAGENT_MATCHER, "i");
 a.ok(m.test("worker") && !m.test("entregador") && !m.test("explorer"), "ponytail so em quem escreve codigo");
 a.equal(s.disableClaudeAiConnectors, true);

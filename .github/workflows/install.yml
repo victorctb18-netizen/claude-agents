@@ -9,3 +9,4 @@ jobs:
         with: { node-version: 24 }
       - run: bash test/install.sh
       - run: bash test/merge.sh
+      - run: bash test/worker-nudge.sh

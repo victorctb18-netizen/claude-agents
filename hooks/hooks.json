@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s\\n' '{\"systemMessage\":\"Subagentes: explorer (mapa) | worker (edita) | tester (roda) | reviewer (diff, opus) | ui-reviewer (tela, opus) | researcher (fato externo). Tarefa 3+ arquivos: $orchestrator. Pedir: \\\"usa o reviewer no diff\\\".\"}'"
+            "command": "printf '%s\n' '{\"systemMessage\":\"Subagentes: explorer (mapa) | worker (edita) | tester (roda) | reviewer (diff, opus) | ui-reviewer (tela, opus) | researcher (fato externo). Tarefa 3+ arquivos: $orchestrator. Varios trechos de arquivo de milhares de linhas: worker, nao o root. Atalhos: usa worker / usa o reviewer no diff.\"}'"
           }
         ]
       }
@@ -32,6 +32,16 @@
             "command": "node scripts/hook-node-check.js",
             "timeout": 15,
             "statusMessage": "node --check"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-worker-nudge.js",
+            "timeout": 10
           }
         ]
       }

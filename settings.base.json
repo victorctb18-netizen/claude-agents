@@ -11,30 +11,28 @@
   "enabledPlugins": {
     "caveman@caveman": true,
     "frontend-design@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": false,
-    "code-review@claude-plugins-official": false,
-    "claude-md-management@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "claude-code-setup@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": false,
+    "claude-code-setup@claude-plugins-official": false,
+    "skill-creator@claude-plugins-official": false,
+    "claude-md-management@claude-plugins-official": false,
     "ui-ux-pro-max@ui-ux-pro-max-skill": false,
+    "security-guidance@claude-plugins-official": true,
     "ponytail@ponytail": true,
     "i-have-adhd@i-have-adhd": true,
     "playwright@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
     "impeccable@impeccable": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": { "source": { "source": "github", "repo": "anthropics/claude-plugins-official" } },
     "caveman": { "source": { "source": "github", "repo": "JuliusBrussee/caveman" } },
     "impeccable": { "source": { "source": "git", "url": "https://github.com/pbakaus/impeccable.git" } },
-    "ui-ux-pro-max-skill": { "source": { "source": "github", "repo": "nextlevelbuilder/ui-ux-pro-max-skill" } },
     "ponytail": { "source": { "source": "git", "url": "https://github.com/DietrichGebert/ponytail.git" } },
     "i-have-adhd": { "source": { "source": "github", "repo": "ayghri/i-have-adhd" } }
   },
   "worktree": { "baseRef": "fresh" },
   "disableClaudeAiConnectors": true,
   "env": {
-    "PONYTAIL_SUBAGENT_MATCHER": "^(worker|reviewer|plan|general-purpose|claude|code-simplifier:code-simplifier)$"
+    "PONYTAIL_SUBAGENT_MATCHER": "^(worker|reviewer|plan|general-purpose|claude)$",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5-5"
   }
 }

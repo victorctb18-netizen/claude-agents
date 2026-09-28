@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Orquestra uma tarefa grande em subagentes com papel fixo (explorer → worker(s) → tester → reviewer). Use quando a tarefa toca 3+ arquivos, tem partes independentes, ou o usuário pede "em paralelo", "orquestra", "$orchestrator".
+description: Orquestra uma tarefa grande em subagentes com papel fixo (explorer → worker(s) → tester → reviewer). Use quando a tarefa toca 3+ arquivos, tem partes independentes, ou é um bloco de edição em arquivo de milhares de linhas, ou o usuário pede "em paralelo", "orquestra", "$orchestrator".
 ---
 
 # Orchestrator
@@ -9,7 +9,7 @@ Você é o root. Você é dono de arquitetura, decomposição, integração e da
 
 ## Gate — delegar ou fazer direto
 
-Faça direto quando: 1-2 arquivos, pedido pequeno e específico, ou bug sem causa conhecida (aí é `diagnosing-bugs` primeiro; orquestra só depois de saber o que mudar).
+Faça direto quando: 1-2 arquivos pequenos, pedido pequeno e específico, ou bug sem causa conhecida (aí é `diagnosing-bugs` primeiro; orquestra só depois de saber o que mudar).
 
 Delegue quando qualquer um vale:
 - toca 3+ arquivos ou front + back
@@ -17,6 +17,13 @@ Delegue quando qualquer um vale:
 - precisa mapear o repo antes de mudar
 - precisa verificar fato externo (API, versão, layout de arquivo)
 - o usuário pediu paralelo/agentes/orquestra
+- bloco de edição em arquivo de milhares de linhas (vários trechos a ler e editar), mesmo sendo 1 arquivo: ver abaixo
+
+**Worker em arquivo grande.** Medido: numa sessão o root fez 329 leituras e 174 Edits no mesmo arquivo de 23k linhas, ~256k acumulados e 10 compactações; cada compactação apaga decisão combinada com o usuário. O worker absorve leitura, edição e harness; o root guarda o pedido, as decisões e lê o `git diff`.
+- Pedido ambíguo: pergunte ao usuário **antes** do spawn. Worker não pergunta, chuta.
+- Passe a região já localizada (`grep -n`, faixa de linhas) e a frase do usuário, não paráfrase.
+- Ajuste seguinte no mesmo bloco (retoque visual, correção) = `SendMessage` ao mesmo worker.
+- Ajuste de 1-2 linhas: root faz direto.
 
 Passou no gate → spawn de verdade. Se o spawn falhar, diga que falhou e só então faça no root, registrado como fallback.
 
