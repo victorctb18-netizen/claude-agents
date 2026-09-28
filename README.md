@@ -21,9 +21,8 @@ O instalador copia para `~/.claude/`:
 - os agentes, as skills de `skills/` (pasta inteira, com os arquivos que cada
   uma traz), os hooks e o trecho de `CLAUDE.md`;
 - os plugins e marketplaces listados em `settings.base.json`: `caveman`,
-  `ponytail`, `i-have-adhd`, `impeccable`, `claude-md-management`,
-  `security-guidance`, `code-simplifier`, `claude-code-setup`, `playwright` e
-  `skill-creator`;
+  `ponytail`, `i-have-adhd`, `impeccable`,
+  `security-guidance` e `playwright`;
 - os modos caveman, ponytail e adhd, ativos por padrão;
 - o script `~/bin/git-faxina.sh` e o alias `git faxina`;
 - o driver de merge `~/bin/merge-mecanico.js` (registrado no git global como
@@ -111,7 +110,7 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `worker` | Implementa dentro de uma lista fechada de arquivos. | Sim | Partes independentes de uma tarefa maior. Dois workers nunca tocam o mesmo arquivo. |
 | `tester` | Executa testes e verificações e devolve a saída. | Não | Depois da implementação. |
 | `reviewer` | Lê só o diff, sem conhecer o plano. | Não | Antes de commitar mudanças relevantes. |
-| `ui-reviewer` | Revisa a tela real: hierarquia, estados, teclado e consistência visual. Usa `impeccable`/`hallmark` quando disponíveis. | Não | Ao criar ou alterar interface. |
+| `ui-reviewer` | Revisa a tela real: hierarquia, estados, teclado e consistência visual. Usa `impeccable` quando disponível. | Não | Ao criar ou alterar interface. |
 | `researcher` | Consulta documentação de APIs, bibliotecas, versões e formatos de arquivo. | Não | Quando a resposta depende de algo fora do repositório. |
 | `entregador` | Executa o fluxo de git e GitHub. | Apenas git | Somente quando o usuário pede explicitamente. |
 | `ci-triage` | Lê o log de um CI com falha. | Não | Quando o CI falha. |
@@ -126,7 +125,6 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `skills/resolving-merge-conflicts/` | Fork do `mattpocock-skills`: triagem mecânica (`?v=`, changelog) antes de ler a intenção de cada lado. |
 | `skills/to-spec/` | Fork do `mattpocock-skills`: marca `[NEEDS CLARIFICATION]` e pergunta tudo numa mensagem antes de publicar. |
 | `skills/mapping-and-dispatching-issues/` | Pilha de issues → mapa priorizado → sessões/worktrees em paralelo. |
-| `skills/pencil-design/` | Desenhar em arquivo `.pen` via MCP do Pencil. |
 | `hooks/hook-node-check.js` | Após salvar um arquivo, roda `node --check` ou `py_compile` e bloqueia se houver erro de sintaxe. |
 | `hooks/hook-cache-bust.js` | Antes de `git commit`, avisa se um `.js`/`.css` mudou sem atualizar o `?v=`. Só atua em projetos com `scripts/check-cache-bust.sh`. |
 | `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes" e "Autonomia e pronto", anexadas ao `~/.claude/CLAUDE.md` pelo instalador. |
@@ -152,7 +150,7 @@ A prova de tela (`cdp-lib.js`) vem com a skill `prova-tela`, que a copia para
 ## Skills de fora
 
 As skills do Matt Pocock (`grilling`, `tdd`, `diagnosing-bugs`, `retro`...)
-e `impeccable`/`hallmark` vêm dos repos de origem, não daqui. Clone de repo de
+e `impeccable` vêm dos repos de origem, não daqui. Clone de repo de
 skills fica **fora** de `~/.claude/skills/`: lá dentro o Claude Code descobre as
 subpastas de novo com prefixo (`mattpocock-skills:tdd`) e cada skill aparece
 duas vezes na listagem de toda sessão. Fork de skill de fora (como `to-spec`)

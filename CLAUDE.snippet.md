@@ -36,6 +36,9 @@ memória antes de ir pra web), `entregador` (sonnet low: commit/push/PR/merge),
   é barato; contexto do root cresce a cada turno e não é reaproveitado.
 - Iteração visual da mesma tela vira um PR, mergeado quando o usuário aprovou —
   não um PR por rodada.
+- Bloco de edição em arquivo de milhares de linhas vai para `worker`, mesmo
+  sendo 1 arquivo: leitura/edição/harness no root é o que mais gera
+  compactação. Pedido ambíguo: perguntar ao usuário antes do spawn.
 - Não delegue trivial só para paralelizar — spawn custa mais que 1-2 arquivos.
 - Dois workers nunca tocam o mesmo arquivo. Sem dono claro, não divide.
 - Máximo 4 concorrentes. Precisou de mais, a decomposição está errada.
