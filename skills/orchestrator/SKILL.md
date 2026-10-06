@@ -7,7 +7,7 @@ description: Orquestra uma tarefa grande em subagentes com papel fixo (explorer 
 
 Você é o root. Você é dono de arquitetura, decomposição, integração e da verificação final. Subagentes fazem trabalho delimitado; você não terceiriza o entendimento.
 
-## Gate — delegar ou fazer direto
+## Gate: delegar ou fazer direto
 
 Faça direto quando: 1-2 arquivos pequenos, pedido pequeno e específico, ou bug sem causa conhecida (aí é `diagnosing-bugs` primeiro; orquestra só depois de saber o que mudar).
 
@@ -36,7 +36,7 @@ Passou no gate → spawn de verdade. Se o spawn falhar, diga que falhou e só en
 5. **Integre você mesmo.** Leia `git diff` real, não o resumo. Passo pós-edição do projeto (cache-bust, build) faltando é responsabilidade sua.
 6. **tester**: lista exata de arquivos tocados e comportamento esperado. Falhou → `SendMessage` pro mesmo worker com o erro colado e o motivo provável. Achado do reviewer vai pelo mesmo caminho. Máximo 2 voltas: a 3ª falha é problema de plano, não de execução: pare, releia o erro no root e replaneje ou reporte.
 7. **reviewer** (e **ui-reviewer** se mexeu em tela): só depois do tester verde. Prompt mínimo: "revise o diff atual"; independência é o valor. Proporcional ao risco: pule se o diff é pequeno e não toca teclado, diálogo, auth, migration ou script auto-instalável, e diga que pulou.
-8. **Entrega** só quando o usuário pedir ("commit", "abre PR", "mergeia"). Rode antes os checks de pré-commit do projeto (cache-bust, changelog) e passe ao `entregador` um pacote que já passa neles: branch, arquivos, os comandos de check e os **caminhos** de dois arquivos que você escreve no scratchpad, a mensagem de commit (com `Co-Authored-By`) e o corpo do PR. Texto passado no prompt ele redigita como saída, a parte cara do spawn; em arquivo, vai por `-F`/`--body-file`. Ele roda sem CLAUDE.md (`omitClaudeMd`): regra do projeto que ele precisa vai no pacote. Etapa seguinte do mesmo PR (merge depois do PR) = `SendMessage` ao mesmo entregador.
+8. **Entrega** só quando o usuário pedir ("commit", "abre PR", "mergeia"): `git entrega`, sem subagente (seção "Entrega" do CLAUDE.md global). Arquivos da entrega = os do diff que você integrou, nunca `git add -A`.
 
 ## Contrato de cada spawn
 
@@ -46,7 +46,7 @@ Passou no gate → spawn de verdade. Se o spawn falhar, diga que falhou e só en
 - **Restrições**: o que não pode mudar.
 - **Entrega**: o que devolver, no formato que o agente já sabe.
 - **Critério de aceite**: como você vai checar que deu certo (comando, comportamento, saída).
-- **Modelo**: `model` explícito na chamada: Sonnet para worker/explorer/tester/researcher; Opus para reviewer/ui-reviewer, ou worker de raciocínio denso (parser novo, migração de dado, concorrência).
+- **Modelo**: o do arquivo do agente entra sozinho (hook `hook-agent-model.js`). Passe `model: "opus"` só para worker de raciocínio denso (parser novo, migração de dado, concorrência).
 
 ## Economia de tokens
 
@@ -71,7 +71,7 @@ Spawn começa do zero: carrega CLAUDE.md + hooks e recompra todo contexto que vo
 | Prova de teclado/DOM no navegador | `prova-tela` | worker ou tester |
 | Regra de negócio ou parser novo | `tdd` | worker |
 | Conflito de merge/rebase | `resolving-merge-conflicts` | root |
-| Fim de sessão grande | `retro` → `revise-claude-md` | usuário invoca |
+| Fim de sessão grande | `retro` | usuário invoca |
 
 O relatório do `critique` é o spec do worker de UI: cole os itens P0/P1 com `arquivo:linha`, não a tela.
 

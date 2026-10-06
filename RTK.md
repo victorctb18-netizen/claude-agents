@@ -15,7 +15,7 @@ brew install rtk                    # macOS
 curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh   # Linux
 ```
 
-Depois rode `node claude-agents/install.js --global` de novo — o instalador
+Depois rode `node claude-agents/install.js --global` de novo: o instalador
 deste repo só liga o hook e copia este arquivo se detectar `rtk` no PATH.
 
 ## Comandos meta (sempre via rtk direto)
@@ -36,7 +36,7 @@ which rtk               # Confirma o binario certo
 ```
 
 ⚠️ **Colisão de nome**: se `rtk gain` falhar, pode ter outro `rtk` instalado
-(reachingforthejack/rtk — Rust Type Kit).
+(reachingforthejack/rtk, Rust Type Kit).
 
 ## Uso via hook
 

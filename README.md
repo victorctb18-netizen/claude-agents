@@ -25,10 +25,12 @@ O instalador copia para `~/.claude/`:
   `security-guidance` e `playwright`;
 - os modos caveman, ponytail e adhd, ativos por padrão;
 - o script `~/bin/git-faxina.sh` e o alias `git faxina`;
+- o script `~/bin/entrega.sh` e o alias `git entrega` (commit, push, PR e merge
+  num comando, sem subagente);
 - o driver de merge `~/bin/merge-mecanico.js` (registrado no git global como
   `merge.mecanico`), que resolve sozinho conflito de `?v=` e de changelog
   `.json` nos repos que pedem por `.gitattributes`;
-- o hook do `rtk` e o `RTK.md`, **só se a máquina já tem `rtk` no PATH** — sem
+- o hook do `rtk` e o `RTK.md`, **só se a máquina já tem `rtk` no PATH**: sem
   isso o hook quebraria todo comando `Bash` de quem não tem o binário. Sem
   `rtk` instalado, o instalador imprime o comando certo pro seu sistema
   ([rtk-ai/rtk](https://github.com/rtk-ai/rtk)):
@@ -62,7 +64,7 @@ $env:CLAUDE_CONFIG_DIR="$HOME\.claude-2"; node claude-agents/install.js --global
 ```
 
 **Não incluído** (depende da máquina): binário do `rtk` em si (só o hook, e
-condicional — veja acima), statusLine, chaves SSH e servidores MCP.
+condicional, veja acima), statusLine, chaves SSH e servidores MCP.
 
 **Instalação por projeto** (`node install.js <pasta>`): use apenas quando o
 projeto precisa de uma versão própria de algum agente.
@@ -82,20 +84,21 @@ arquitetura e integra o resultado; os subagentes executam partes delimitadas.
 | `reviewer` | Opus 5.5 (`claude-opus-5-5`) | médio | Achar defeitos no diff com olhar independente, antes do commit. |
 | `ui-reviewer` | Opus 5.5 (`claude-opus-5-5`) | médio | Apontar problemas de uso de uma tela, com arquivo e linha. |
 | `researcher` | Sonnet | médio | Confirmar um fato externo, com fonte e data. |
-| `entregador` | Sonnet | baixo | Commitar, subir, abrir PR e mergear a pedido do usuário. |
 | `ci-triage` | Sonnet | baixo | Dizer por que o CI falhou: job, linha e causa provável. |
 
-`entregador` e `ci-triage` têm `omitClaudeMd: true`: rodam sem os CLAUDE.md e
-a memória, porque tudo que usam vem do prompt (o pacote de entrega, o id do
-run). Medido num spawn vazio: o início cai de ~20k para ~11k tokens. Os outros
-papéis precisam das regras do projeto e carregam o CLAUDE.md normalmente.
+O modelo da tabela vale mesmo quando a chamada esquece o parâmetro `model`: o
+hook `hook-agent-model.js` preenche com o `model:` do arquivo do agente.
 
-O `entregador` vai além: só a ferramenta `Bash`, mensagem de commit e corpo do
-PR chegam como arquivo (`-F`, `--body-file`) em vez de texto que ele
-redigitaria, e cada etapa é uma chamada encadeada com `&&`. O
-`settings.base.json` põe `PONYTAIL_SUBAGENT_MATCHER` no `env`, então o ponytail
-(~1,5k tokens por spawn) só entra em quem escreve código. Início medido: ~7k
-tokens num spawn vazio. Numa sessão interativa entram ainda as instruções dos
+`ci-triage` tem `omitClaudeMd: true`: roda sem os CLAUDE.md e a memória,
+porque tudo que usa vem do prompt (o id do run). Medido num spawn vazio: o
+início cai de ~20k para ~11k tokens. Os outros papéis precisam das regras do
+projeto e carregam o CLAUDE.md normalmente.
+
+Commit, push, PR e merge não têm subagente: o antigo `entregador` era 340 de
+703 spawns medidos, ~7k tokens de partida cada, para rodar uma cadeia fixa de
+comandos. Virou `git entrega` (`bin/entrega.sh`). O `settings.base.json` põe
+`PONYTAIL_SUBAGENT_MATCHER` no `env`, então o ponytail (~1,5k tokens por
+spawn) só entra em quem escreve código. Numa sessão interativa entram ainda as instruções dos
 servidores MCP conectados, que chegam a todo subagente, use ele a ferramenta ou
 não, e não têm corte por agente. Por isso o `settings.base.json` liga
 `disableClaudeAiConnectors`: os conectores do claude.ai (Lovable, Trello, Docs)
@@ -112,7 +115,6 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `reviewer` | Lê só o diff, sem conhecer o plano. | Não | Antes de commitar mudanças relevantes. |
 | `ui-reviewer` | Revisa a tela real: hierarquia, estados, teclado e consistência visual. Usa `impeccable` quando disponível. | Não | Ao criar ou alterar interface. |
 | `researcher` | Consulta documentação de APIs, bibliotecas, versões e formatos de arquivo. | Não | Quando a resposta depende de algo fora do repositório. |
-| `entregador` | Executa o fluxo de git e GitHub. | Apenas git | Somente quando o usuário pede explicitamente. |
 | `ci-triage` | Lê o log de um CI com falha. | Não | Quando o CI falha. |
 
 ## Conteúdo do repositório
@@ -127,8 +129,10 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `skills/mapping-and-dispatching-issues/` | Pilha de issues → mapa priorizado → sessões/worktrees em paralelo. |
 | `hooks/hook-node-check.js` | Após salvar um arquivo, roda `node --check` ou `py_compile` e bloqueia se houver erro de sintaxe. |
 | `hooks/hook-cache-bust.js` | Antes de `git commit`, avisa se um `.js`/`.css` mudou sem atualizar o `?v=`. Só atua em projetos com `scripts/check-cache-bust.sh`. |
-| `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes" e "Autonomia e pronto", anexadas ao `~/.claude/CLAUDE.md` pelo instalador. |
+| `hooks/hook-agent-model.js` | Spawn de subagente sem `model` ganha o do arquivo do agente. Prova: `bash test/agent-model.sh`. |
+| `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes", "Entrega" e "Autonomia e pronto". O instalador grava entre marcadores no `~/.claude/CLAUDE.md` e troca o bloco inteiro a cada execução. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
+| `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |
 | `bin/merge-mecanico.js` | Driver de merge: `?v=` vizinho e changelog `.json` com inserção dos dois lados. Resto do conflito volta com marcador. Prova: `bash test/merge.sh`. |
 | `settings.base.json` | Plugins, marketplaces e permissões globais que o instalador une ao `settings.json`. |
 | `RTK.md` | Comandos do `rtk`; só é copiado se a máquina já tem o binário. |

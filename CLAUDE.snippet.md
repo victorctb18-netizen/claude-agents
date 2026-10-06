@@ -1,53 +1,41 @@
 ## Higiene de git (todos os repos)
 
-- **PR mergeado → apagar branch local + worktree** na hora.
-- Fluxo é squash/rebase-merge: `git branch --merged` não detecta branch morta.
-  Sinal confiável = estado do PR (`gh pr list --head <b>`).
-- Ao notar acúmulo de branches/worktrees: rodar `git faxina` (dry-run) e depois
-  `git faxina --apaga`. Script em `~/bin/git-faxina.sh`. Só mexe em branch
-  mergeada (PR MERGED ou grafo mergeado + 0 à frente); nunca `main`, branch
-  atual, ou worktree com alteração não commitada.
-- Todos os repos têm "Automatically delete head branches" ligado — a branch
-  remota some sozinha no merge.
-- **Nova sessão = nova branch** (padrão, ~90% dos casos). Antes do primeiro
-  Edit/Write de código: branch nova a partir de `main` atualizado (worktree se
-  a árvore tem alteração não commitada de outra sessão). Só reaproveitar a
-  branch atual se a tarefa for claramente continuação dela (mesmo assunto, PR
-  ainda aberto — `gh pr list --head <branch>`); na dúvida, perguntar.
+- **Nova sessão = nova branch** (~90% dos casos). Antes do primeiro Edit/Write
+  de código: branch nova a partir de `main` atualizado (worktree se a árvore
+  tem alteração não commitada de outra sessão). Reaproveite a branch atual só
+  se a tarefa continua um PR ainda aberto dela (`gh pr list --head <branch>`);
+  na dúvida, pergunte.
+- **PR mergeado: apague branch local + worktree** na hora, com `git faxina`
+  (lista) e `git faxina --apaga`. Squash/rebase-merge esconde branch morta de
+  `git branch --merged`; o script olha o estado do PR e só mexe em branch
+  mergeada, nunca em `main`, na branch atual ou em worktree com alteração. A
+  branch remota some sozinha no merge.
 
-## Subagentes — quando e como delegar
+## Subagentes
 
-Tarefa grande (3+ arquivos, partes independentes): skill `orchestrator`
-(`$orchestrator`). Papéis fixos: `explorer` (mapa, só leitura), `worker`
-(implementa dentro de lista fechada de arquivos), `tester` (roda e cola
-evidência), `reviewer` (opus, lê só o diff, sem contexto do plano),
-`ui-reviewer` (opus, só leitura; tela real + regras de UI do CLAUDE.md),
-`researcher` (fato externo — API, versão, layout de arquivo; olha `docs/` e
-memória antes de ir pra web), `entregador` (sonnet low: commit/push/PR/merge),
-`ci-triage` (sonnet low: lê log de CI vermelho, devolve job+linha+causa).
+Tarefa de 3+ arquivos ou com partes independentes: skill `orchestrator`.
 
-- O root é dono de arquitetura, decomposição e integração. Commit, push, PR e
-  merge são do `entregador` — e **só quando o usuário pedir explicitamente**
-  ("commit", "abre PR", "mergeia"). Nunca por conta própria depois de
-  implementar. Worker/tester/explorer nunca commitam.
-- Economia de contexto: root não lê `.png`, log de CI nem arquivo com milhares
-  de linhas — `ui-reviewer` olha print, `ci-triage` lê log, `explorer` mapeia.
-  Cold start de subagente (~20k tokens, cacheado; ~11k com `omitClaudeMd`)
-  é barato; contexto do root cresce a cada turno e não é reaproveitado.
-- Iteração visual da mesma tela vira um PR, mergeado quando o usuário aprovou —
-  não um PR por rodada.
+- Root não lê `.png`, log de CI nem arquivo de milhares de linhas: print vai
+  para o `ui-reviewer`, log para o `ci-triage`, mapa para o `explorer`. Contexto
+  do root cresce a cada turno; o do subagente morre com ele.
 - Bloco de edição em arquivo de milhares de linhas vai para `worker`, mesmo
-  sendo 1 arquivo: leitura/edição/harness no root é o que mais gera
-  compactação. Pedido ambíguo: perguntar ao usuário antes do spawn.
-- Não delegue trivial só para paralelizar — spawn custa mais que 1-2 arquivos.
-- Dois workers nunca tocam o mesmo arquivo. Sem dono claro, não divide.
-- Máximo 4 concorrentes. Precisou de mais, a decomposição está errada.
-- Passe `model` explícito na chamada do `Agent` em vez de confiar no
-  `model:` do arquivo do agente: um spawn de `entregador` (arquivo diz
-  `sonnet`) já saiu Opus, e o parâmetro tem precedência sobre o frontmatter.
-  Auditoria: `<sessão>/subagents/agent-*.meta.json` guarda o modelo pedido e
-  o `message.model` do transcript, o que rodou de fato.
-- Instrução do usuário vence esta política.
+  sendo 1 arquivo. Pedido ambíguo: pergunte ao usuário antes do spawn.
+- Iteração visual da mesma tela vira um PR, mergeado quando o usuário aprovou.
+
+## Entrega
+
+Commit, push, PR e merge **só quando o usuário pedir** ("commit", "abre PR",
+"mergeia"), nunca por conta própria depois de implementar. Escreva no
+scratchpad a mensagem de commit (terminada no `Co-Authored-By`) e o corpo do
+PR, e rode da raiz do repo (ou da worktree):
+
+```bash
+git entrega <commit|pr|merge> <branch> <msg> <corpo> -- <arquivo>...
+git entrega merge <branch>        # PR já aberto: espera CI, mergeia, espera deploy
+```
+
+O script confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do
+projeto, e para em aviso. Aviso falso-positivo conhecido: `ACEITA_AVISO=1`.
 
 ## Autonomia e "pronto"
 
