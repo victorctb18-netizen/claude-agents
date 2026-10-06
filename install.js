@@ -2,6 +2,7 @@
 // Instala agentes, skill, hooks e trecho de CLAUDE.md.
 //
 //   node install.js --global              # ~/.claude — vale pra todo repo da maquina
+//   node install.js --global --upstream   # idem + atualiza as skills do Matt Pocock
 //   node install.js <pasta-do-projeto>    # so' naquele projeto (.claude/ dele)
 //
 // Global e' o normal. Por projeto so' quando o projeto precisa de agente
@@ -35,10 +36,51 @@ const copiar = (de, para, sobrescrever = true) => {
 for (const f of fs.readdirSync(path.join(aqui, 'agents')))
   copiar(path.join(aqui, 'agents', f), path.join(claudeDir, 'agents', f));
 
+// --upstream: puxa o clone das skills do Matt (vizinho deste repo) e copia.
+// O link-skills.sh dele cria symlink, mas o Git Bash no Windows copia em vez
+// de linkar: sem isto, `git pull` nao chegava em ~/.claude e skill removida
+// la' ficava instalada para sempre. O manifesto lembra o que veio de la' para
+// apagar so' o que sumiu do upstream, nunca skill do usuario.
+const pastaSkills = path.join(claudeDir, 'skills');
+if (process.argv.includes('--upstream')) {
+  const clone = process.env.MATT_SKILLS_DIR || path.join(aqui, '..', 'mattpocock-skills');
+  const cp = require('child_process');
+  if (cp.spawnSync('git', ['-C', clone, 'pull', '-q', '--ff-only'], { stdio: 'inherit' }).status !== 0) {
+    console.error('git pull falhou em ' + clone);
+    process.exit(1);
+  }
+  // deprecated/ e misc/ ficam de fora, como no link-skills.sh do proprio repo.
+  const achadas = {};
+  const varre = d => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      if (!e.isDirectory() || ['node_modules', 'deprecated', 'misc'].includes(e.name)) continue;
+      const p = path.join(d, e.name);
+      if (fs.existsSync(path.join(p, 'SKILL.md'))) achadas[e.name] = p;
+      else varre(p);
+    }
+  };
+  varre(path.join(clone, 'skills'));
+  const manifesto = path.join(pastaSkills, '.upstream.json');
+  const antes = fs.existsSync(manifesto) ? JSON.parse(fs.readFileSync(manifesto, 'utf8')) : [];
+  for (const s of antes.filter(s => !achadas[s])) {
+    fs.rmSync(path.join(pastaSkills, s), { recursive: true, force: true });
+    console.log('removido ' + path.join(pastaSkills, s));
+  }
+  for (const [s, de] of Object.entries(achadas)) {
+    fs.rmSync(path.join(pastaSkills, s), { recursive: true, force: true });
+    fs.cpSync(de, path.join(pastaSkills, s), { recursive: true });
+  }
+  fs.writeFileSync(manifesto, JSON.stringify(Object.keys(achadas).sort(), null, 2) + '\n');
+  console.log('upstream ' + Object.keys(achadas).length + ' skills de ' + clone);
+}
+
 // Pasta inteira: skill leva arquivo junto (prova-tela traz o cdp-lib.js).
+// rmSync antes: cpSync mescla, e fork sobre copia do upstream herdava arquivo
+// que o fork nao tem (to-spec ficou com o agents/ do original).
 for (const s of fs.readdirSync(path.join(aqui, 'skills'))) {
-  fs.cpSync(path.join(aqui, 'skills', s), path.join(claudeDir, 'skills', s), { recursive: true });
-  console.log('copiado  ' + path.join(claudeDir, 'skills', s));
+  fs.rmSync(path.join(pastaSkills, s), { recursive: true, force: true });
+  fs.cpSync(path.join(aqui, 'skills', s), path.join(pastaSkills, s), { recursive: true });
+  console.log('copiado  ' + path.join(pastaSkills, s));
 }
 
 for (const f of fs.readdirSync(path.join(aqui, 'hooks')).filter(f => /\.(js|sh)$/.test(f)))

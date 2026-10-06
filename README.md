@@ -156,6 +156,12 @@ subpastas de novo com prefixo (`mattpocock-skills:tdd`) e cada skill aparece
 duas vezes na listagem de toda sessão. Fork de skill de fora (como `to-spec`)
 mora aqui e o instalador sobrescreve a cópia original.
 
+Atualizar as do Matt: `node install.js --global --upstream`. Faz `git pull` no
+clone vizinho (`../mattpocock-skills`, ou `MATT_SKILLS_DIR`), copia as skills
+para `~/.claude/skills`, apaga as que sumiram do upstream e reaplica os forks
+daqui por cima. O `scripts/link-skills.sh` do Matt não serve no Windows: o Git
+Bash copia em vez de criar symlink, e o `git pull` sozinho não chega à instalação.
+
 ## Como atualizar
 
 Altere primeiro no projeto em que a mudança se provou útil, depois copie para
