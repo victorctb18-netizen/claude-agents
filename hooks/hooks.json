@@ -21,6 +21,26 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-arvore.js",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-worker-nudge.js",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -41,6 +61,28 @@
           {
             "type": "command",
             "command": "node scripts/hook-worker-nudge.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-decisoes.js",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-arvore.js",
             "timeout": 10
           }
         ]

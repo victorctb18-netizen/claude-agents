@@ -4,7 +4,8 @@
   de código: branch nova a partir de `main` atualizado (worktree se a árvore
   tem alteração não commitada de outra sessão). Reaproveite a branch atual só
   se a tarefa continua um PR ainda aberto dela (`gh pr list --head <branch>`);
-  na dúvida, pergunte.
+  na dúvida, pergunte. Árvore principal em `main` ou suja de outra sessão: o hook barra o Edit e
+  a saída é a ferramenta `EnterWorktree`.
 - **PR mergeado: apague branch local + worktree** na hora, com `git faxina`
   (lista) e `git faxina --apaga`. Squash/rebase-merge esconde branch morta de
   `git branch --merged`; o script olha o estado do PR e só mexe em branch

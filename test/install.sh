@@ -26,8 +26,8 @@ a.equal(s.enabledPlugins["ponytail@ponytail"], true);
 a.equal(s.enabledPlugins["code-simplifier@claude-plugins-official"], false, "tirado do pacote desliga em maquina ja instalada");
 a.equal(s.enabledPlugins["superpowers@claude-plugins-official"], true, "fora do pacote fica como o usuario deixou");
 a.ok(s.hooks.PreToolUse.some(g => g.hooks[0].command === "rtk hook claude"));
-a.equal(s.hooks.PreToolUse.length, 3);
-a.deepEqual(s.hooks.SessionStart.map(g => g.hooks[0].command), ["meu-hook"], "SessionStart antigo sai, o do usuario fica");
+a.equal(s.hooks.PreToolUse.length, 5);
+a.deepEqual(s.hooks.SessionStart.map(g => g.hooks[0].command.split("/").pop()), ["meu-hook", "hook-decisoes.js\"", "hook-arvore.js\""], "SessionStart antigo sai, o do usuario fica");
 a.equal(s.hooks.PostToolUse.length, 2);
 const m = new RegExp(s.env.PONYTAIL_SUBAGENT_MATCHER, "i");
 a.ok(m.test("worker") && !m.test("entregador") && !m.test("explorer"), "ponytail so em quem escreve codigo");
@@ -56,7 +56,7 @@ node "$repo/install.js" --global >/dev/null
 [ -f "$HOME/bin/git-faxina.sh" ] && [ -f "$HOME/.claude/.ponytail-active" ]
 [ "$(git config --global alias.faxina)" = '!bash ~/bin/git-faxina.sh' ]
 [ "$(git config --global merge.mecanico.driver)" = 'node ~/bin/merge-mecanico.js %O %A %B %P' ]
-[ -f "$HOME/bin/merge-mecanico.js" ] && [ -f "$HOME/.claude/skills/prova-tela/cdp-lib.js" ]
+[ -f "$HOME/bin/merge-mecanico.js" ] && [ -f "$HOME/bin/claude-stats.js" ] && [ -f "$HOME/.claude/skills/prova-tela/cdp-lib.js" ]
 CLAUDE_CONFIG_DIR="$HOME/.claude-2" node "$repo/install.js" --global >/dev/null
 [ -f "$HOME/.claude-2/agents/reviewer.md" ] && [ -f "$HOME/.claude-2/settings.json" ]
 

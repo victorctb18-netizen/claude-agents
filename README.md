@@ -128,10 +128,16 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `hooks/hook-node-check.js` | Após salvar um arquivo, roda `node --check` ou `py_compile` e bloqueia se houver erro de sintaxe. |
 | `hooks/hook-cache-bust.js` | Antes de `git commit`, avisa se um `.js`/`.css` mudou sem atualizar o `?v=`. Só atua em projetos com `scripts/check-cache-bust.sh`. |
 | `hooks/hook-agent-model.js` | Spawn de subagente sem `model` ganha o do arquivo do agente. Prova: `bash test/agent-model.sh`. |
+| `hooks/hook-worker-nudge.js` | Conta leituras do root em arquivo de 3000+ linhas: avisa a cada 8 e, a partir de 24, nega Read/`sed` daquele arquivo (Edit passa). Liberação: `touch` no arquivo que a negação indica. Prova: `bash test/worker-nudge.sh`. |
+| `hooks/hook-decisoes.js` | Depois de cada compactação, reinjeta os pedidos do usuário, as respostas do AskUserQuestion e os arquivos alterados, tirados do transcript. Prova: `bash test/decisoes.sh`. |
+| `hooks/hook-arvore.js` | Barra Edit/Write na árvore principal quando a branch é a base ou a árvore começou a sessão suja de outra; manda usar `EnterWorktree`. Worktree, subagente e arquivo fora de repo passam. Prova: `bash test/arvore.sh`. |
 | `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes", "Entrega" e "Autonomia e pronto". O instalador grava entre marcadores no `~/.claude/CLAUDE.md` e troca o bloco inteiro a cada execução. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
 | `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |
 | `bin/merge-mecanico.js` | Driver de merge: `?v=` vizinho e changelog `.json` com inserção dos dois lados. Resto do conflito volta com marcador. Prova: `bash test/merge.sh`. |
+| `bin/claude-stats.js` | `node ~/bin/claude-stats.js [--dias 7] [--salva]`: compactações, spawns por tipo, maiores causas de contexto e travas disparadas; `--salva` guarda em `~/.claude/claude-stats.jsonl` e mostra a variação. Prova: `bash test/stats.sh`. |
+| `evals/` | Tarefas fixas rodadas com `claude -p` antes e depois de mudar prompt/hook; ver `evals/README.md`. |
+| `docs/regras.md` | Cada regra do snippet e dos agentes e o que a garante (hook, script ou só texto, com o motivo). |
 | `settings.base.json` | Plugins, marketplaces e permissões globais que o instalador une ao `settings.json`. |
 | `RTK.md` | O que fazer quando o filtro do `rtk` corta a saída; só é copiado se a máquina já tem o binário. |
 
