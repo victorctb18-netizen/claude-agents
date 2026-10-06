@@ -30,6 +30,16 @@ atual=$(git branch --show-current)
 [ "$atual" = "$branch" ] || { echo "branch atual é $atual, pedido diz $branch" >&2; exit 1; }
 [ "$branch" != "$base" ] || { echo "entrega sai de branch de trabalho, nunca de $base" >&2; exit 1; }
 
+# Subject com maiúscula e texto sem travessão: regras do usuário que o modelo
+# esquece em sessão longa. Conventional commit (`fix(x): ...`, de outros repos) passa.
+if [ -n "$msg" ]; then
+  s=$(head -1 "$msg") cc='^[a-z-]+(\([^)]*\))?!?: '
+  if [[ $s =~ ^[a-z] && ! $s =~ $cc ]]; then echo "subject começa com minúscula: $s" >&2; exit 1; fi
+  for f in "$msg" ${corpo:+"$corpo"}; do
+    if grep -n "$(printf '\342\200\224')" "$f" >&2; then echo "travessão em $f: troque por vírgula, dois-pontos ou ponto" >&2; exit 1; fi
+  done
+fi
+
 # Roda um check do projeto; linha ::warning na saída barra a entrega.
 check() {
   local out
@@ -80,7 +90,7 @@ for tentativa in $(seq 12); do
 done
 deploy=.github/workflows/deploy.yml
 antes=$( [ -f $deploy ] && gh run list --workflow=deploy.yml --limit 1 --json databaseId -q '.[0].databaseId' || true )
-gh pr merge "$branch" --merge
+gh pr merge "$branch" --squash
 echo "merge ok"
 if [ -f $deploy ]; then
   # O run do deploy aparece alguns segundos depois do merge; sem esperar o id

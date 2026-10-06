@@ -42,6 +42,10 @@ md="$HOME/.claude/CLAUDE.md"
 sed -i 's/^## Autonomia.*/## Autonomia antiga/' "$md"
 node "$repo/install.js" --global >/dev/null
 diff /tmp/c1.md "$md"
+# Matcher alargado no repo chega em hook já instalado, sem duplicar o grupo.
+node -e 'const f=process.argv[1],s=require(f);s.hooks.PostToolUse.find(g=>/worker-nudge/.test(g.hooks[0].command)).matcher="Read|Edit";require("fs").writeFileSync(f,JSON.stringify(s))' "$HOME/.claude/settings.json"
+node "$repo/install.js" --global >/dev/null
+node -e 'const g=require(process.argv[1]).hooks.PostToolUse.filter(g=>/worker-nudge/.test(g.hooks[0].command));if(g.length!==1||g[0].matcher!=="Read|Edit|Bash")process.exit(1)' "$HOME/.claude/settings.json"
 [ ! -e "$HOME/.claude/agents/entregador.md" ] && [ -f "$HOME/.claude/agents/meu.md" ]
 [ -f "$HOME/bin/entrega.sh" ] && [ "$(git config --global alias.entrega)" = '!bash ~/bin/entrega.sh' ]
 # Agente que sai do repo sai da instalação (manifesto); o do usuário fica.

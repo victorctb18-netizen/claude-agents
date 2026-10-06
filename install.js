@@ -123,7 +123,11 @@ for (const [evento, grupos] of Object.entries(novo.hooks)) {
   for (const g of grupos) {
     if (global) for (const h of g.hooks)
       h.command = h.command.replace(/node scripts\/(hook-[a-z-]+\.js)/, (_, f) => 'node "' + path.join(hooksDir, f).replace(/\\/g, '/') + '"');
-    if (!g.hooks.every(h => cmds.has(h.command))) lista.push(g);
+    // Hook já instalado ganha o matcher do repo: sem isso, matcher alargado
+    // (worker-nudge passou a olhar Bash) nunca chegaria à máquina.
+    const ja = lista.find(x => x.hooks.length && x.hooks.every(h => g.hooks.some(n => n.command === h.command)));
+    if (ja) { if (g.matcher) ja.matcher = g.matcher; }
+    else if (!g.hooks.every(h => cmds.has(h.command))) lista.push(g);
   }
 }
 atual.permissions = atual.permissions || {};

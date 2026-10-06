@@ -83,7 +83,6 @@ arquitetura e integra o resultado; os subagentes executam partes delimitadas.
 | `tester` | Sonnet | baixo | Provar com a saída real dos testes que a mudança funciona. |
 | `reviewer` | Opus 5.5 (`claude-opus-5-5`) | médio | Achar defeitos no diff com olhar independente, antes do commit. |
 | `ui-reviewer` | Opus 5.5 (`claude-opus-5-5`) | médio | Apontar problemas de uso de uma tela, com arquivo e linha. |
-| `researcher` | Sonnet | médio | Confirmar um fato externo, com fonte e data. |
 | `ci-triage` | Sonnet | baixo | Dizer por que o CI falhou: job, linha e causa provável. |
 
 O modelo da tabela vale mesmo quando a chamada esquece o parâmetro `model`: o
@@ -114,7 +113,6 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `tester` | Executa testes e verificações e devolve a saída. | Não | Depois da implementação. |
 | `reviewer` | Lê só o diff, sem conhecer o plano. | Não | Antes de commitar mudanças relevantes. |
 | `ui-reviewer` | Revisa a tela real: hierarquia, estados, teclado e consistência visual. Usa `impeccable` quando disponível. | Não | Ao criar ou alterar interface. |
-| `researcher` | Consulta documentação de APIs, bibliotecas, versões e formatos de arquivo. | Não | Quando a resposta depende de algo fora do repositório. |
 | `ci-triage` | Lê o log de um CI com falha. | Não | Quando o CI falha. |
 
 ## Conteúdo do repositório
@@ -135,7 +133,7 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |
 | `bin/merge-mecanico.js` | Driver de merge: `?v=` vizinho e changelog `.json` com inserção dos dois lados. Resto do conflito volta com marcador. Prova: `bash test/merge.sh`. |
 | `settings.base.json` | Plugins, marketplaces e permissões globais que o instalador une ao `settings.json`. |
-| `RTK.md` | Comandos do `rtk`; só é copiado se a máquina já tem o binário. |
+| `RTK.md` | O que fazer quando o filtro do `rtk` corta a saída; só é copiado se a máquina já tem o binário. |
 
 ## Projetos em JavaScript puro com `?v=`
 
