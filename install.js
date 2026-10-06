@@ -174,6 +174,9 @@ if (global) {
   cp.spawnSync('git', ['config', '--global', 'merge.mecanico.name', 'conflito mecanico: ?v= e changelog json']);
   cp.spawnSync('git', ['config', '--global', 'merge.mecanico.driver', 'node ~/bin/merge-mecanico.js %O %A %B %P']);
 
+  // Relatório semanal: mede se as regras pegam (compactações, spawns, travas).
+  copiar(path.join(aqui, 'bin', 'claude-stats.js'), path.join(bin, 'claude-stats.js'));
+
   // rtk e' binario a parte (nao vem neste repo). So' liga o hook se a maquina
   // ja tem rtk no PATH: sem isso todo comando Bash quebraria pra quem nao tem.
   var rtkLigado = cp.spawnSync('rtk', ['--version'], { shell: true }).status === 0;

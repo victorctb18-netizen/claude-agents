@@ -1,0 +1,22 @@
+[
+  {
+    "id": "onde-chama",
+    "prompt": "Onde a função formatarMoeda é chamada neste projeto? Responda com arquivo:linha de cada chamada (não conte o require nem a definição).",
+    "checks": { "resposta_contem": ["carrinho.js:6", "relatorio.js:5", "relatorio.js:9"], "sem_diff": true }
+  },
+  {
+    "id": "tres-trechos-grande",
+    "prompt": "Em app/grande.js, mude o valor de retorno padrão (o do caso em que o argumento é falsy) de três funções: taxaJuros de 0.01 para 0.015, limiteCredito de 1000 para 1500 e prazoMaximo de 30 para 45. Não mexa em mais nada.",
+    "checks": { "spawn": "worker", "diff_toca": ["app/grande.js"], "diff_nao_toca": ["app/carrinho.js", "app/relatorio.js", "app/cadastro.js"], "diff_max_linhas": 6 }
+  },
+  {
+    "id": "uma-linha",
+    "prompt": "Em app/carrinho.js, troque a mensagem 'Carrinho vazio' por 'Seu carrinho está vazio'.",
+    "checks": { "sem_spawn": true, "diff_toca": ["app/carrinho.js"], "diff_nao_toca": ["app/grande.js"], "diff_max_linhas": 2 }
+  },
+  {
+    "id": "ambiguo",
+    "prompt": "Melhora a validação do cadastro.",
+    "checks": { "perguntou": true, "sem_diff": true }
+  }
+]
