@@ -6,8 +6,11 @@ repo="$(cd "$(dirname "$0")/.." && pwd)"
 export HOME="$(mktemp -d)"
 export USERPROFILE="$HOME"  # os.homedir() no Windows le USERPROFILE
 mkdir -p "$HOME/.claude"
-printf '# Higiene de git (todos os repos)\nja tenho, com outro nivel de titulo\n' > "$HOME/.claude/CLAUDE.md"
-echo '{"model":"opus","enabledPlugins":{"caveman@caveman":false,"superpowers@claude-plugins-official":true,"code-simplifier@claude-plugins-official":true},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}]}}' > "$HOME/.claude/settings.json"
+# CLAUDE.md de instalação anterior aos marcadores: seções soltas (uma com
+# outro nível de título) somem, a regra do usuário fica.
+printf '# Minhas regras\nregra minha\n\n# Higiene de git (todos os repos)\nja tenho\n\n## Subagentes, quando e como delegar\nvelho\n' > "$HOME/.claude/CLAUDE.md"
+echo '{"model":"opus","enabledPlugins":{"caveman@caveman":false,"superpowers@claude-plugins-official":true,"code-simplifier@claude-plugins-official":true},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"printf Subagentes: explorer (mapa) | worker"}]},{"hooks":[{"type":"command","command":"meu-hook"}]}]}}' > "$HOME/.claude/settings.json"
+mkdir -p "$HOME/.claude/agents"; echo x > "$HOME/.claude/agents/entregador.md"; echo x > "$HOME/.claude/agents/meu.md"
 
 node "$repo/install.js" --global >/dev/null
 cp "$HOME/.claude/settings.json" /tmp/s1.json; cp "$HOME/.claude/CLAUDE.md" /tmp/c1.md
@@ -23,7 +26,8 @@ a.equal(s.enabledPlugins["ponytail@ponytail"], true);
 a.equal(s.enabledPlugins["code-simplifier@claude-plugins-official"], false, "tirado do pacote desliga em maquina ja instalada");
 a.equal(s.enabledPlugins["superpowers@claude-plugins-official"], true, "fora do pacote fica como o usuario deixou");
 a.ok(s.hooks.PreToolUse.some(g => g.hooks[0].command === "rtk hook claude"));
-a.equal(s.hooks.PreToolUse.length, 2);
+a.equal(s.hooks.PreToolUse.length, 3);
+a.deepEqual(s.hooks.SessionStart.map(g => g.hooks[0].command), ["meu-hook"], "SessionStart antigo sai, o do usuario fica");
 a.equal(s.hooks.PostToolUse.length, 2);
 const m = new RegExp(s.env.PONYTAIL_SUBAGENT_MATCHER, "i");
 a.ok(m.test("worker") && !m.test("entregador") && !m.test("explorer"), "ponytail so em quem escreve codigo");
@@ -33,6 +37,22 @@ md="$HOME/.claude/CLAUDE.md"
 [ "$(grep -c '^#\+ Higiene de git' "$md")" = 1 ]
 [ "$(grep -c '^## Subagentes' "$md")" = 1 ]
 [ "$(grep -c '^## Autonomia' "$md")" = 1 ]
+[ "$(grep -c '^<!-- claude-agents:' "$md")" = 1 ] && grep -q 'regra minha' "$md" && ! grep -q 'ja tenho\|velho' "$md"
+# Seção editada no repo chega em máquina já instalada: o bloco é trocado inteiro.
+sed -i 's/^## Autonomia.*/## Autonomia antiga/' "$md"
+node "$repo/install.js" --global >/dev/null
+diff /tmp/c1.md "$md"
+# Matcher alargado no repo chega em hook já instalado, sem duplicar o grupo.
+node -e 'const f=process.argv[1],s=require(f);s.hooks.PostToolUse.find(g=>/worker-nudge/.test(g.hooks[0].command)).matcher="Read|Edit";require("fs").writeFileSync(f,JSON.stringify(s))' "$HOME/.claude/settings.json"
+node "$repo/install.js" --global >/dev/null
+node -e 'const g=require(process.argv[1]).hooks.PostToolUse.filter(g=>/worker-nudge/.test(g.hooks[0].command));if(g.length!==1||g[0].matcher!=="Read|Edit|Bash")process.exit(1)' "$HOME/.claude/settings.json"
+[ ! -e "$HOME/.claude/agents/entregador.md" ] && [ -f "$HOME/.claude/agents/meu.md" ]
+[ -f "$HOME/bin/entrega.sh" ] && [ "$(git config --global alias.entrega)" = '!bash ~/bin/entrega.sh' ]
+# Agente que sai do repo sai da instalação (manifesto); o do usuário fica.
+node -e 'const f=process.argv[1],m=require(f);m.agents.push("velho.md");require("fs").writeFileSync(f,JSON.stringify(m))' "$HOME/.claude/.claude-agents.json"
+echo x > "$HOME/.claude/agents/velho.md"
+node "$repo/install.js" --global >/dev/null
+[ ! -e "$HOME/.claude/agents/velho.md" ] && [ -f "$HOME/.claude/agents/meu.md" ] && [ -f "$HOME/.claude/agents/worker.md" ]
 [ -f "$HOME/bin/git-faxina.sh" ] && [ -f "$HOME/.claude/.ponytail-active" ]
 [ "$(git config --global alias.faxina)" = '!bash ~/bin/git-faxina.sh' ]
 [ "$(git config --global merge.mecanico.driver)" = 'node ~/bin/merge-mecanico.js %O %A %B %P' ]

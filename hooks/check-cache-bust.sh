@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # Args vao direto pro git diff: dois refs (CI), `--cached` (index) ou `HEAD`
-# (arvore inteira — hook local, quando o commit vem junto com `git add`).
+# (arvore inteira - hook local, quando o commit vem junto com `git add`).
 range=("$@")
 
 changed=$(git diff --name-only --diff-filter=d "${range[@]}" -- 'app/js/*.js' 'app/css/*.css' || true)

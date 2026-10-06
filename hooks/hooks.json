@@ -1,15 +1,5 @@
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "printf '%s\n' '{\"systemMessage\":\"Subagentes: explorer (mapa) | worker (edita) | tester (roda) | reviewer (diff, opus) | ui-reviewer (tela, opus) | researcher (fato externo). Tarefa 3+ arquivos: $orchestrator. Varios trechos de arquivo de milhares de linhas: worker, nao o root. Atalhos: usa worker / usa o reviewer no diff.\"}'"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -19,6 +9,16 @@
             "command": "node scripts/hook-cache-bust.js",
             "timeout": 15,
             "statusMessage": "?v= check"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-agent-model.js",
+            "timeout": 10
           }
         ]
       }
@@ -36,7 +36,7 @@
         ]
       },
       {
-        "matcher": "Read|Edit",
+        "matcher": "Read|Edit|Bash",
         "hooks": [
           {
             "type": "command",

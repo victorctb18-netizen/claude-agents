@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 // Instala agentes, skill, hooks e trecho de CLAUDE.md.
 //
-//   node install.js --global              # ~/.claude — vale pra todo repo da maquina
+//   node install.js --global              # ~/.claude, vale pra todo repo da maquina
 //   node install.js --global --upstream   # idem + atualiza as skills do Matt Pocock
 //   node install.js <pasta-do-projeto>    # so' naquele projeto (.claude/ dele)
 //
 // Global e' o normal. Por projeto so' quando o projeto precisa de agente
-// diferente do global — Claude Code prefere o de .claude/agents/ ao de
+// diferente do global: Claude Code prefere o de .claude/agents/ ao de
 // ~/.claude/agents/ quando o nome coincide.
 //
-// Nunca apaga o que ja existe: agentes e skill sobrescrevem (sao deste repo),
-// hooks entram so' se o command ainda nao esta la', permissions.ask e' unido,
-// o trecho de CLAUDE.md so' entra se o marcador nao existe.
+// Agentes e skills sobrescrevem (são deste repo); o que saiu do repo sai da
+// instalação, pelo manifesto .claude-agents.json. Hooks entram só se o
+// command ainda não está lá, permissions.ask é unido, o trecho de CLAUDE.md
+// troca o bloco entre marcadores.
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -33,7 +34,20 @@ const copiar = (de, para, sobrescrever = true) => {
   console.log('copiado  ' + para);
 };
 
-for (const f of fs.readdirSync(path.join(aqui, 'agents')))
+// Manifesto do que este repo instalou: agente ou skill que sai do repo sai da
+// máquina, e o que o usuário criou à mão (fora do manifesto) fica. Sem
+// manifesto (instalação anterior a ele), entregador.md é o único removido:
+// virou bin/entrega.sh.
+const manifestoRepo = path.join(claudeDir, '.claude-agents.json');
+const instalado = fs.existsSync(manifestoRepo) ? JSON.parse(fs.readFileSync(manifestoRepo, 'utf8'))
+  : { agents: global ? ['entregador.md'] : [], skills: [] };
+const doRepo = { agents: fs.readdirSync(path.join(aqui, 'agents')), skills: fs.readdirSync(path.join(aqui, 'skills')) };
+for (const f of instalado.agents.filter(f => !doRepo.agents.includes(f)))
+  if (fs.existsSync(path.join(claudeDir, 'agents', f))) {
+    fs.rmSync(path.join(claudeDir, 'agents', f));
+    console.log('removido ' + path.join(claudeDir, 'agents', f));
+  }
+for (const f of doRepo.agents)
   copiar(path.join(aqui, 'agents', f), path.join(claudeDir, 'agents', f));
 
 // --upstream: puxa o clone das skills do Matt (vizinho deste repo) e copia.
@@ -77,11 +91,19 @@ if (process.argv.includes('--upstream')) {
 // Pasta inteira: skill leva arquivo junto (prova-tela traz o cdp-lib.js).
 // rmSync antes: cpSync mescla, e fork sobre copia do upstream herdava arquivo
 // que o fork nao tem (to-spec ficou com o agents/ do original).
-for (const s of fs.readdirSync(path.join(aqui, 'skills'))) {
+for (const s of doRepo.skills) {
   fs.rmSync(path.join(pastaSkills, s), { recursive: true, force: true });
   fs.cpSync(path.join(aqui, 'skills', s), path.join(pastaSkills, s), { recursive: true });
   console.log('copiado  ' + path.join(pastaSkills, s));
 }
+// Fork que sai daqui mas existe no upstream fica: é a cópia do Matt.
+const manifestoUp = path.join(pastaSkills, '.upstream.json');
+const doUpstream = fs.existsSync(manifestoUp) ? JSON.parse(fs.readFileSync(manifestoUp, 'utf8')) : [];
+for (const s of instalado.skills.filter(s => !doRepo.skills.includes(s) && !doUpstream.includes(s))) {
+  fs.rmSync(path.join(pastaSkills, s), { recursive: true, force: true });
+  console.log('removido ' + path.join(pastaSkills, s));
+}
+fs.writeFileSync(manifestoRepo, JSON.stringify(doRepo, null, 2) + '\n');
 
 for (const f of fs.readdirSync(path.join(aqui, 'hooks')).filter(f => /\.(js|sh)$/.test(f)))
   copiar(path.join(aqui, 'hooks', f), path.join(hooksDir, f), global);
@@ -89,13 +111,23 @@ for (const f of fs.readdirSync(path.join(aqui, 'hooks')).filter(f => /\.(js|sh)$
 const novo = JSON.parse(fs.readFileSync(path.join(aqui, 'hooks', 'hooks.json'), 'utf8'));
 const atual = fs.existsSync(settingsPath) ? JSON.parse(fs.readFileSync(settingsPath, 'utf8')) : {};
 atual.hooks = atual.hooks || {};
+// SessionStart listava os agentes, que o Claude Code já lista sozinho em toda
+// sessão: saiu do hooks.json, e a cópia instalada sai junto.
+if (atual.hooks.SessionStart) {
+  atual.hooks.SessionStart = atual.hooks.SessionStart.filter(g => !g.hooks.some(h => (h.command || '').includes('Subagentes: explorer (mapa)')));
+  if (!atual.hooks.SessionStart.length) delete atual.hooks.SessionStart;
+}
 for (const [evento, grupos] of Object.entries(novo.hooks)) {
   const lista = (atual.hooks[evento] = atual.hooks[evento] || []);
   const cmds = new Set(lista.flatMap(g => g.hooks.map(h => h.command)));
   for (const g of grupos) {
     if (global) for (const h of g.hooks)
       h.command = h.command.replace(/node scripts\/(hook-[a-z-]+\.js)/, (_, f) => 'node "' + path.join(hooksDir, f).replace(/\\/g, '/') + '"');
-    if (!g.hooks.every(h => cmds.has(h.command))) lista.push(g);
+    // Hook já instalado ganha o matcher do repo: sem isso, matcher alargado
+    // (worker-nudge passou a olhar Bash) nunca chegaria à máquina.
+    const ja = lista.find(x => x.hooks.length && x.hooks.every(h => g.hooks.some(n => n.command === h.command)));
+    if (ja) { if (g.matcher) ja.matcher = g.matcher; }
+    else if (!g.hooks.every(h => cmds.has(h.command))) lista.push(g);
   }
 }
 atual.permissions = atual.permissions || {};
@@ -132,6 +164,10 @@ if (global) {
   const cp = require('child_process');
   if (cp.spawnSync('git', ['config', '--global', '--get', 'alias.faxina']).status !== 0)
     cp.spawnSync('git', ['config', '--global', 'alias.faxina', '!bash ~/bin/git-faxina.sh']);
+  // Commit/push/PR/merge sem subagente. Alias com ! roda da raiz do repo,
+  // onde o script acha os scripts/check-*.sh do projeto.
+  copiar(path.join(aqui, 'bin', 'entrega.sh'), path.join(bin, 'entrega.sh'));
+  cp.spawnSync('git', ['config', '--global', 'alias.entrega', '!bash ~/bin/entrega.sh']);
   // Driver de conflito mecanico (?v=, changelog .json). So' age em repo que
   // pede por .gitattributes (merge=mecanico); nos outros o git nem chama.
   copiar(path.join(aqui, 'bin', 'merge-mecanico.js'), path.join(bin, 'merge-mecanico.js'));
@@ -139,7 +175,7 @@ if (global) {
   cp.spawnSync('git', ['config', '--global', 'merge.mecanico.driver', 'node ~/bin/merge-mecanico.js %O %A %B %P']);
 
   // rtk e' binario a parte (nao vem neste repo). So' liga o hook se a maquina
-  // ja tem rtk no PATH — sem isso todo comando Bash quebraria pra quem nao tem.
+  // ja tem rtk no PATH: sem isso todo comando Bash quebraria pra quem nao tem.
   var rtkLigado = cp.spawnSync('rtk', ['--version'], { shell: true }).status === 0;
   if (rtkLigado) {
     copiar(path.join(aqui, 'RTK.md'), path.join(claudeDir, 'RTK.md'));
@@ -150,31 +186,44 @@ if (global) {
     fs.writeFileSync(settingsPath, JSON.stringify(atual, null, 2) + '\n');
     console.log('rtk      ligado (' + settingsPath + ')');
   } else {
-    // https://github.com/rtk-ai/rtk#installation — um comando por SO.
+    // https://github.com/rtk-ai/rtk#installation: um comando por SO.
     const comando = { win32: 'winget install rtk-ai.rtk', darwin: 'brew install rtk' }[process.platform]
       || 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh';
-    console.log('rtk      nao encontrado no PATH — hook e RTK.md pulados.');
+    console.log('rtk      nao encontrado no PATH: hook e RTK.md pulados.');
     console.log('         instale com: ' + comando);
     console.log('         depois rode este instalador de novo pra ligar.');
   }
 }
 
-// Anexa cada secao "## " do trecho que ainda nao existe no CLAUDE.md alvo —
-// assim secao nova no repo chega em maquina ja instalada sem duplicar as antigas.
+// O trecho vive entre marcadores e é trocado inteiro a cada instalação:
+// seção editada no repo chega em máquina já instalada. Antes dos marcadores
+// as seções eram anexadas soltas; a migração apaga essas cópias pelo título.
 const claudeMd = global ? path.join(claudeDir, 'CLAUDE.md') : path.join(alvoDir, 'CLAUDE.md');
-let existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
+// CRLF -> LF: checkout no Windows (autocrlf) deixa CR no fim das linhas.
+let existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8').replace(/\r\n/g, '\n') : '';
 if (typeof rtkLigado !== 'undefined' && rtkLigado && !existente.includes('@RTK.md'))
   existente = '@RTK.md\n\n' + existente;
-// CRLF -> LF: checkout no Windows (autocrlf) deixa CR no fim do titulo e o
-// includes() abaixo nao achava a secao ja instalada e anexava de novo.
+const INI = '<!-- claude-agents: gerado por install.js, edite no repo claude-agents -->';
+const FIM = '<!-- /claude-agents -->';
 const secoes = fs.readFileSync(path.join(aqui, 'CLAUDE.snippet.md'), 'utf8').replace(/\r\n/g, '\n').split(/^(?=## )/m).filter(s => s.trim());
 // Higiene de git depende do ~/bin/git-faxina.sh: so' no global.
-const novas = secoes.filter(s => (global || !s.startsWith('## Higiene')) && !existente.includes(s.split('\n')[0].replace(/^#+/, '')));
-if (!novas.length) console.log('mantido  ' + claudeMd);
+const bloco = INI + '\n\n' + secoes.filter(s => global || !s.startsWith('## Higiene')).map(s => s.trimEnd()).join('\n\n') + '\n\n' + FIM + '\n';
+const i = existente.indexOf(INI), j = existente.indexOf(FIM);
+let novoMd;
+if (i >= 0 && j > i) novoMd = existente.slice(0, i) + bloco + existente.slice(j + FIM.length).replace(/^\n/, '');
 else {
-  existente += (existente && !existente.endsWith('\n') ? '\n' : '') + novas.map(s => '\n' + s.trimEnd() + '\n').join('');
-  fs.writeFileSync(claudeMd, existente);
-  console.log('anexado  ' + claudeMd + ' (' + novas.map(s => s.split('\n')[0]).join(', ') + ')');
+  // ponytail: casa pelo começo do título antigo; seção do próprio usuário com
+  // o mesmo começo ("## Entrega de ...") sairia junto na primeira instalação.
+  const legado = ['Higiene de git', 'Subagentes', 'Autonomia', 'Entrega'];
+  novoMd = existente.split(/^(?=#{1,6} )/m)
+    .filter(s => !legado.some(l => new RegExp('^#{1,6} ' + l).test(s)))
+    .join('').trimEnd();
+  novoMd = (novoMd ? novoMd + '\n\n' : '') + bloco;
+}
+if (novoMd === existente) console.log('mantido  ' + claudeMd);
+else {
+  fs.writeFileSync(claudeMd, novoMd);
+  console.log('trecho   ' + claudeMd);
 }
 
 console.log('\nPronto. Sessao nova (ou /hooks) carrega tudo.');

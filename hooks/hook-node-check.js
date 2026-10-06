@@ -1,5 +1,5 @@
 // PostToolUse(Write|Edit): check de sintaxe no arquivo salvo. .js via
-// `node --check`, .py via py_compile. Bloqueia — erro de sintaxe nunca e'
+// `node --check`, .py via py_compile. Bloqueia: erro de sintaxe nunca e'
 // falso-positivo e voltar na hora e' mais barato que descobrir no teste.
 let s = '';
 process.stdin.on('data', d => s += d).on('end', () => {
