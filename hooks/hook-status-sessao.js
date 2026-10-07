@@ -10,7 +10,9 @@
 const fs = require('fs'), path = require('path'), os = require('os');
 const { execFileSync } = require('child_process');
 
-const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, encoding: 'utf8', timeout: 15000, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+// windowsHide: o processo solto não tem console, e sem isso o Windows abre uma
+// janela visível para cada git/gh que ele chama.
+const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, encoding: 'utf8', timeout: 15000, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
 // Teste troca o gh por um script node, sem rede.
 const gh = (args, cwd) => process.env.STATUS_SESSAO_GH ? run('node', [process.env.STATUS_SESSAO_GH, ...args], cwd) : run('gh', args, cwd);
 // Também tira o emoji da primeira versão do hook.
@@ -53,11 +55,33 @@ function ler(arq) {
 
 // Branch de trabalho: a última worktree linkada tocada (cwd ou arquivo editado);
 // sessão que edita por caminho absoluto fica com cwd na raiz em main.
+// Lê o HEAD do arquivo em vez de rodar `git branch --show-current`: o transcript
+// cita centenas de pastas (1069 numa sessão), e era um processo git por pasta a
+// cada Stop, cada um abrindo janela no Windows. Worktree linkada tem `.git`
+// arquivo apontando para o gitdir; HEAD destacado não é ref e volta ''.
+function headDe(d) {
+  for (let p = d; ; p = path.dirname(p)) {
+    const g = path.join(p, '.git');
+    let gitdir = null;
+    try {
+      gitdir = fs.statSync(g).isDirectory() ? g
+        : path.resolve(p, fs.readFileSync(g, 'utf8').match(/^gitdir:\s*(.+)$/m)[1].trim());
+    } catch {}
+    if (gitdir) {
+      const m = fs.readFileSync(path.join(gitdir, 'HEAD'), 'utf8').match(/^ref: refs\/heads\/(.+)$/m);
+      return m ? m[1].trim() : '';
+    }
+    if (path.dirname(p) === p) return '';
+  }
+}
+
 function branch(dirs, cwd) {
-  for (const d of [...dirs].reverse().concat(cwd || [])) {
+  // Set: o transcript repete a mesma pasta a cada linha; a ordem de inserção
+  // invertida mantém a mais recente na frente.
+  for (const d of new Set([...dirs].reverse().concat(cwd || []))) {
     try {
       if (!fs.existsSync(d)) continue;
-      const b = run('git', ['branch', '--show-current'], d);
+      const b = headDe(d);
       if (!BASES.includes(b)) return { b, dir: d };
     } catch {}
   }
