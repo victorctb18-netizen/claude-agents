@@ -1,7 +1,9 @@
-// Stop: põe o estado do trabalho no nome da sessão (🔵 em andamento, 🟡 PR
-// aberto, 🔴 CI falhou, ✅ mergeado, ⚪ PR fechado) e, em sessão de issue,
-// troca o nome por "#N título da issue". A lista de sessões do VSCode não tem
-// cor nem campo próprio; o nome é o único lugar que aparece nela.
+// Stop: põe o estado do trabalho na frente do nome da sessão, com o PR e a
+// issue: "FAZENDO", "MERGE PR#12", "CI✗ PR#12", "FEITO PR#12", "FECHADO PR#12",
+// "+ #507" em sessão de issue, cujo nome vira o título da issue. Palavra e não
+// emoji: diz a ação que falta. A lista de sessões do VSCode não tem cor nem
+// campo próprio; o nome é o único lugar que aparece nela, e corta em ~25
+// caracteres, daí palavras de no máximo 7 letras.
 // Grava a mesma linha `custom-title` que o /rename grava no transcript: o
 // formato não é documentado, então qualquer erro cai no catch e não faz nada.
 // Nome começando com "OK -" foi marcado à mão e não é tocado.
@@ -11,7 +13,8 @@ const { execFileSync } = require('child_process');
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, encoding: 'utf8', timeout: 15000, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
 // Teste troca o gh por um script node, sem rede.
 const gh = (args, cwd) => process.env.STATUS_SESSAO_GH ? run('node', [process.env.STATUS_SESSAO_GH, ...args], cwd) : run('gh', args, cwd);
-const PREFIXO = /^(?:🔵|🟡|🔴|✅|⚪)\s*/u;
+// Também tira o emoji da primeira versão do hook.
+const PREFIXO = /^(?:(?:🔵|🟡|🔴|✅|⚪)\s*|(?:(?:FAZENDO|MERGE|CI✗|FEITO|FECHADO)(?: PR#\d+)?(?: #\d+)?|#\d+) · )/u;
 const BASES = ['main', 'master', 'HEAD', ''];
 
 function texto(c) {
@@ -65,14 +68,16 @@ function estadoPr(pr, br) {
   // A branch viva manda: sessão que mergeou um PR e seguiu em outra branch está
   // em andamento. O PR da saída de ferramenta só vale quando a worktree já foi
   // apagada (git faxina depois do merge).
+  const campos = 'number,state,statusCheckRollup';
   let v = null;
-  if (br) v = JSON.parse(gh(['pr', 'list', '--head', br.b, '--state', 'all', '--limit', '1', '--json', 'state,statusCheckRollup'], br.dir))[0] || null;
-  else if (pr) v = JSON.parse(gh(['pr', 'view', pr.n, '--repo', pr.repo, '--json', 'state,statusCheckRollup']));
-  if (!v) return br ? '🔵' : null;
-  if (v.state === 'MERGED') return '✅';
-  if (v.state === 'CLOSED') return '⚪';
+  if (br) v = JSON.parse(gh(['pr', 'list', '--head', br.b, '--state', 'all', '--limit', '1', '--json', campos], br.dir))[0] || null;
+  else if (pr) v = JSON.parse(gh(['pr', 'view', pr.n, '--repo', pr.repo, '--json', campos]));
+  if (!v) return br ? 'FAZENDO' : null;
+  const n = ` PR#${v.number}`;
+  if (v.state === 'MERGED') return 'FEITO' + n;
+  if (v.state === 'CLOSED') return 'FECHADO' + n;
   const falhou = (v.statusCheckRollup || []).some(c => ['FAILURE', 'CANCELLED', 'TIMED_OUT', 'ERROR'].includes(c.conclusion || c.state));
-  return falhou ? '🔴' : '🟡';
+  return (falhou ? 'CI✗' : 'MERGE') + n;
 }
 
 function issue(r, br) {
@@ -94,17 +99,21 @@ function decide(ev) {
   const atual = r.custom || r.ai || '';
   if (/^OK\s*-/i.test(atual)) return null;
   const br = branch(r.dirs, ev.cwd);
-  let emoji = null;
-  // gh lento ou fora do ar: mantém o emoji que já estava, em vez de apagá-lo.
-  try { emoji = estadoPr(r.pr, br); } catch { emoji = (atual.match(PREFIXO) || [''])[0].trim() || null; }
-  let base = atual.replace(PREFIXO, '');
+  const velho = (atual.match(PREFIXO) || [''])[0];
+  let base = atual.slice(velho.length);
+  let estado;
+  try { estado = estadoPr(r.pr, br); } catch {
+    // gh lento ou fora do ar: mantém o prefixo que já estava, em vez de apagá-lo.
+    return null;
+  }
   const n = issue(r, br);
   if (n) try {
     const t = tituloIssue(n, (br && br.dir) || ev.cwd);
-    base = `#${n} ${t.length > 50 ? t.slice(0, 49) + '…' : t}`;
+    base = t.length > 50 ? t.slice(0, 49) + '…' : t;
   } catch {}
   if (!base) return null;
-  const novo = emoji ? `${emoji} ${base}` : base;
+  const prefixo = [estado, n && `#${n}`].filter(Boolean).join(' ');
+  const novo = prefixo ? `${prefixo} · ${base}` : base;
   return novo === atual ? null : novo;
 }
 
