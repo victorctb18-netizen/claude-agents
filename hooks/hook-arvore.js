@@ -4,7 +4,11 @@
 // da outra. A regra "nova sessão = nova branch" vivia no CLAUDE.md e falhava;
 // aqui o primeiro Edit barra e aponta `git worktree add`. Não o EnterWorktree:
 // ele move o transcript para a pasta de projeto da worktree e a sessão some
-// da lista do VSCode depois de reiniciar. Bug do hook nunca
+// da lista do VSCode depois de reiniciar. O mesmo vale para `cd` do Bash para
+// uma worktree DENTRO da pasta da sessão (`.claude/worktrees/x`): o cwd fica
+// grudado (fora da pasta o shell reseta) e o transcript vai junto. Por isso a
+// worktree nasce ao lado do repo (`<repo>-wt/<branch>`), e `cd`/EnterWorktree
+// para worktree dentro da pasta da sessão é barrado. Bug do hook nunca
 // trava o trabalho: qualquer erro cai no catch e permite.
 const fs = require('fs'), path = require('path'), os = require('os');
 const { execFileSync } = require('child_process');
@@ -40,6 +44,27 @@ function base(top) {
   catch { return 'main'; }
 }
 
+const fora = top => `${path.dirname(top)}/${path.basename(top)}-wt/<branch>`.split(path.sep).join('/');
+const nega = motivo => ({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: `Barrado: ${motivo}.` } });
+const win = p => process.platform === 'win32' ? p.replace(/^\/([a-z])\//i, '$1:/') : p;
+
+// `cd` que muda de worktree sem sair da pasta da sessão gruda o cwd e leva o
+// transcript. `cd` para fora da pasta passa: o shell reseta sozinho.
+function cdPresa(ev) {
+  const cwd = ev.cwd || process.cwd(), cmd = (ev.tool_input || {}).command || '';
+  const r0 = repo(cwd);
+  if (!r0) return;
+  const re = /(?:^|[;&|(\n]\s*)(?:cd|pushd|Set-Location|sl)\s+(?:-(?:Literal)?Path\s+)?("[^"]+"|'[^']+'|[^\s;&|)]+)/gi;
+  for (const m of cmd.matchAll(re)) {
+    const alvo = path.resolve(cwd, win(m[1].replace(/^["']|["']$/g, '').replace(/^~(?=[\\/]|$)/, os.homedir())));
+    const rel = path.relative(norm(cwd), norm(alvo));
+    if (!rel || rel.startsWith('..') || path.isAbsolute(rel) || !fs.existsSync(alvo)) continue;
+    const r = repo(alvo);
+    if (r && norm(r.top) !== norm(r0.top))
+      return nega(`\`cd ${m[1]}\` entra numa worktree dentro da pasta da sessão; o cwd fica preso lá e a sessão some da lista do VSCode. Rode com caminho absoluto ou \`git -C <worktree>\`, sem \`cd\`. Worktree nova: \`git worktree add ${fora(r0.top)}\`, fora do repo`);
+  }
+}
+
 function decide(ev) {
   const id = ev.session_id;
   if (ev.hook_event_name === 'SessionStart') {
@@ -51,6 +76,8 @@ function decide(ev) {
     return;
   }
   if (ev.hook_event_name !== 'PreToolUse') return;
+  if (ev.tool_name === 'EnterWorktree') return nega('a ferramenta EnterWorktree move o transcript para a pasta da worktree e a sessão some da lista do VSCode. Use `git worktree add` pelo shell e caminho absoluto');
+  if (['Bash', 'PowerShell'].includes(ev.tool_name)) return cdPresa(ev);
   // Subagente edita onde o root mandou; quem decide a árvore é o root.
   if (ev.agent_id || ev.agent_type) return;
   if (id && fs.existsSync(livre(id))) return;
@@ -78,7 +105,7 @@ function decide(ev) {
   return {
     hookSpecificOutput: {
       hookEventName: 'PreToolUse', permissionDecision: 'deny',
-      permissionDecisionReason: `Edição barrada: ${motivo}. Crie uma worktree pelo shell (\`git worktree add <pasta> -b <branch> origin/${base(r.top)}\`) e edite lá por caminho absoluto; não use a ferramenta EnterWorktree, que tira a sessão da lista do VSCode. Ou, se o usuário mandou editar aqui mesmo, rode \`touch ${livre(id).split(path.sep).join('/')}\`.`
+      permissionDecisionReason: `Edição barrada: ${motivo}. Crie uma worktree pelo shell (\`git worktree add ${fora(r.top)} -b <branch> origin/${base(r.top)}\`), FORA da pasta do repo, e edite lá por caminho absoluto, sem \`cd\` para ela; não use a ferramenta EnterWorktree, que tira a sessão da lista do VSCode. Ou, se o usuário mandou editar aqui mesmo, rode \`touch ${livre(id).split(path.sep).join('/')}\`.`
     }
   };
 }
