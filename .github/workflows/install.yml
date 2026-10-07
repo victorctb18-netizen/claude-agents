@@ -14,5 +14,6 @@ jobs:
       - run: bash test/agent-model.sh
       - run: bash test/decisoes.sh
       - run: bash test/arvore.sh
+      - run: bash test/status-sessao.sh
       - run: bash test/stats.sh
       - run: node test/frontmatter.js
