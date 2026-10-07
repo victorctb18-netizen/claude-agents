@@ -115,6 +115,41 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `ui-reviewer` | Revisa a tela real: hierarquia, estados, teclado e consistência visual. Usa `impeccable` quando disponível. | Não | Ao criar ou alterar interface. |
 | `ci-triage` | Lê o log de um CI com falha. | Não | Quando o CI falha. |
 
+## Status no nome da sessão
+
+A lista de sessões do VSCode só mostra o nome, sem cor nem campo extra. O hook
+`hook-status-sessao.js` usa esse nome como painel: ao fim de cada resposta
+(evento `Stop`), põe na frente dele o estado do trabalho, para você ver de
+relance qual sessão espera uma ação sua.
+
+| Prefixo | Quando aparece | O que falta fazer |
+|---|---|---|
+| `FAZENDO · …` | A sessão está numa branch de trabalho que ainda não tem PR. | Terminar e pedir o PR. |
+| `MERGE PR#12 · …` | PR aberto, CI verde ou ainda rodando. | Revisar e mergear. |
+| `CI✗ PR#12 · …` | PR aberto com algum check em `FAILURE`, `CANCELLED`, `TIMED_OUT` ou `ERROR`. | Ver o CI (`ci-triage`) e corrigir. |
+| `FEITO PR#12 · …` | PR mergeado. | Nada; pode fechar a sessão. |
+| `FECHADO PR#12 · …` | PR fechado sem merge. | Nada, ou reabrir. |
+| `#507 · título da issue` | A branch tem `issue-507` no nome, ou a primeira mensagem cita a issue. O nome passa a ser o título da issue. | Combina com os de cima: `MERGE PR#12 #507 · …`. |
+| sem prefixo | Sessão em `main`/`master` ou HEAD destacado, sem PR citado. | Nada. |
+| `OK - …` | Nome que você pôs à mão com `/rename`. | O hook nunca mexe. |
+
+Como decide:
+
+- **Branch:** a última worktree tocada na sessão (cwd ou arquivo editado). Lê o
+  `.git/HEAD` direto, sem rodar `git`: o transcript cita centenas de pastas, e
+  um processo por pasta abria uma janela no Windows a cada resposta.
+- **PR:** `gh pr list --head <branch>`. Sem branch viva (worktree já apagada
+  pelo `git faxina`), vale o último link de PR que apareceu em saída de
+  ferramenta; link colado por você não conta, porque pode ser de outro assunto.
+- **Custo:** o hook sai na hora e o trabalho roda num processo solto, então o
+  `gh` lento não segura a sessão. Se o `gh` falhar, o prefixo antigo fica como
+  estava.
+- **Gravação:** acrescenta uma linha `custom-title` no transcript, a mesma que o
+  `/rename` grava. Palavras de até 7 letras porque a lista corta o nome em ~25
+  caracteres.
+
+Prova: `bash test/status-sessao.sh`.
+
 ## Conteúdo do repositório
 
 | Caminho | Conteúdo |
@@ -131,7 +166,7 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `hooks/hook-worker-nudge.js` | Conta leituras do root em arquivo de 3000+ linhas: avisa a cada 8 e, a partir de 24, nega Read/`sed` daquele arquivo (Edit passa). Liberação: `touch` no arquivo que a negação indica. Prova: `bash test/worker-nudge.sh`. |
 | `hooks/hook-decisoes.js` | Depois de cada compactação, reinjeta os pedidos do usuário, as respostas do AskUserQuestion e os arquivos alterados, tirados do transcript. Prova: `bash test/decisoes.sh`. |
 | `hooks/hook-arvore.js` | Barra Edit/Write na árvore principal quando a branch é a base ou a árvore começou a sessão suja de outra; manda criar worktree com `git worktree add` (não `EnterWorktree`, que tira a sessão da lista do VSCode). Worktree, subagente e arquivo fora de repo passam. Prova: `bash test/arvore.sh`. |
-| `hooks/hook-status-sessao.js` | Stop: estado, PR e issue na frente do nome da sessão (`FAZENDO`, `MERGE PR#12`, `CI✗ PR#12`, `FEITO PR#12`, `FECHADO PR#12`, `+ #507` com o título da issue como nome), gravando `custom-title` no transcript como o `/rename`. Nome "OK - …" fica intocado. Prova: `bash test/status-sessao.sh`. |
+| `hooks/hook-status-sessao.js` | Estado, PR e issue na frente do nome da sessão; tabela em [Status no nome da sessão](#status-no-nome-da-sessão). Prova: `bash test/status-sessao.sh`. |
 | `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes", "Entrega" e "Autonomia e pronto". O instalador grava entre marcadores no `~/.claude/CLAUDE.md` e troca o bloco inteiro a cada execução. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
 | `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |
