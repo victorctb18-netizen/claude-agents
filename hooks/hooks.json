@@ -23,7 +23,7 @@
         ]
       },
       {
-        "matcher": "Edit|Write|NotebookEdit",
+        "matcher": "Edit|Write|NotebookEdit|Bash|PowerShell|EnterWorktree",
         "hooks": [
           {
             "type": "command",

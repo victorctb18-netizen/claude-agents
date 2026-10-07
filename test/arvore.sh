@@ -41,5 +41,15 @@ passa "$d/r/a.txt"
 git worktree add -q "$d/wt" main 2>/dev/null
 echo c > "$d/wt/a.txt"
 passa "$d/wt/a.txt"                                 # worktree linkada, em main e suja
+# cd para worktree dentro da pasta da sessão gruda o cwd: barra. Fora passa.
+roda() { printf '{"hook_event_name":"PreToolUse","session_id":"%s","cwd":"%s","tool_name":"%s","tool_input":{"command":"%s"}}' "$sid" "$(m "$d/r")" "${2:-Bash}" "$1" | node "$h"; }
+git worktree add -q "$d/r/.claude/worktrees/x" -b x main 2>/dev/null
+[ -n "$(roda "cd $(m "$d/r")/.claude/worktrees/x; ls")" ]          # absoluto, dentro
+[ -n "$(roda "git status && cd .claude/worktrees/x")" ]             # relativo, encadeado
+[ -n "$(roda "Set-Location .claude/worktrees/x" PowerShell)" ]
+[ -z "$(roda "cd $(m "$d/wt"); ls")" ]                              # worktree fora da pasta
+[ -z "$(roda "cd sub; ls")" ]                                       # mesma árvore
+[ -z "$(roda "git -C .claude/worktrees/x status")" ]
+[ -n "$(roda "" EnterWorktree)" ]
 printf 'nao json' | node "$h"                       # erro interno: permite, exit 0
 echo ok
