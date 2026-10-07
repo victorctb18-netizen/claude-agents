@@ -130,7 +130,7 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 | `hooks/hook-agent-model.js` | Spawn de subagente sem `model` ganha o do arquivo do agente. Prova: `bash test/agent-model.sh`. |
 | `hooks/hook-worker-nudge.js` | Conta leituras do root em arquivo de 3000+ linhas: avisa a cada 8 e, a partir de 24, nega Read/`sed` daquele arquivo (Edit passa). Liberação: `touch` no arquivo que a negação indica. Prova: `bash test/worker-nudge.sh`. |
 | `hooks/hook-decisoes.js` | Depois de cada compactação, reinjeta os pedidos do usuário, as respostas do AskUserQuestion e os arquivos alterados, tirados do transcript. Prova: `bash test/decisoes.sh`. |
-| `hooks/hook-arvore.js` | Barra Edit/Write na árvore principal quando a branch é a base ou a árvore começou a sessão suja de outra; manda usar `EnterWorktree`. Worktree, subagente e arquivo fora de repo passam. Prova: `bash test/arvore.sh`. |
+| `hooks/hook-arvore.js` | Barra Edit/Write na árvore principal quando a branch é a base ou a árvore começou a sessão suja de outra; manda criar worktree com `git worktree add` (não `EnterWorktree`, que tira a sessão da lista do VSCode). Worktree, subagente e arquivo fora de repo passam. Prova: `bash test/arvore.sh`. |
 | `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes", "Entrega" e "Autonomia e pronto". O instalador grava entre marcadores no `~/.claude/CLAUDE.md` e troca o bloco inteiro a cada execução. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
 | `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |

@@ -2,7 +2,9 @@
 // árvore principal quando ela não é lugar seguro. Várias sessões dividem a
 // mesma árvore e uma acabava levando no commit/deploy o trabalho não commitado
 // da outra. A regra "nova sessão = nova branch" vivia no CLAUDE.md e falhava;
-// aqui o primeiro Edit barra e aponta o EnterWorktree. Bug do hook nunca
+// aqui o primeiro Edit barra e aponta `git worktree add`. Não o EnterWorktree:
+// ele move o transcript para a pasta de projeto da worktree e a sessão some
+// da lista do VSCode depois de reiniciar. Bug do hook nunca
 // trava o trabalho: qualquer erro cai no catch e permite.
 const fs = require('fs'), path = require('path'), os = require('os');
 const { execFileSync } = require('child_process');
@@ -76,7 +78,7 @@ function decide(ev) {
   return {
     hookSpecificOutput: {
       hookEventName: 'PreToolUse', permissionDecision: 'deny',
-      permissionDecisionReason: `Edição barrada: ${motivo}. Chame a ferramenta EnterWorktree (cria worktree de main e move a sessão para lá), ou, se o usuário mandou editar aqui mesmo, rode \`touch ${livre(id).split(path.sep).join('/')}\`.`
+      permissionDecisionReason: `Edição barrada: ${motivo}. Crie uma worktree pelo shell (\`git worktree add <pasta> -b <branch> origin/${base(r.top)}\`) e edite lá por caminho absoluto; não use a ferramenta EnterWorktree, que tira a sessão da lista do VSCode. Ou, se o usuário mandou editar aqui mesmo, rode \`touch ${livre(id).split(path.sep).join('/')}\`.`
     }
   };
 }
