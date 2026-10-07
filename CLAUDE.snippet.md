@@ -5,7 +5,10 @@
   tem alteração não commitada de outra sessão). Reaproveite a branch atual só
   se a tarefa continua um PR ainda aberto dela (`gh pr list --head <branch>`);
   na dúvida, pergunte. Árvore principal em `main` ou suja de outra sessão: o hook barra o Edit e
-  a saída é a ferramenta `EnterWorktree`.
+  a saída é `git worktree add <pasta> -b <branch> origin/main` pelo shell, editando
+  por caminho absoluto. **Não use a ferramenta `EnterWorktree`**: ela move o
+  histórico da sessão para a pasta de projeto da worktree e a sessão some da
+  lista do VSCode depois de reiniciar.
 - **PR mergeado: apague branch local + worktree** na hora, com `git faxina`
   (lista) e `git faxina --apaga`. Squash/rebase-merge esconde branch morta de
   `git branch --merged`; o script olha o estado do PR e só mexe em branch
