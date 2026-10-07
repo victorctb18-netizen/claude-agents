@@ -130,7 +130,7 @@ relance qual sessão espera uma ação sua.
 | `FEITO PR#12 · …` | PR mergeado. | Nada; pode fechar a sessão. |
 | `FECHADO PR#12 · …` | PR fechado sem merge. | Nada, ou reabrir. |
 | `#507 · título da issue` | A branch tem `issue-507` no nome, ou a primeira mensagem cita a issue. O nome passa a ser o título da issue. | Combina com os de cima: `MERGE PR#12 #507 · …`. |
-| sem prefixo | Sessão em `main`/`master` ou HEAD destacado, sem PR citado. | — |
+| sem prefixo | Sessão em `main`/`master` ou HEAD destacado, sem PR citado. | Nada. |
 | `OK - …` | Nome que você pôs à mão com `/rename`. | O hook nunca mexe. |
 
 Como decide:
