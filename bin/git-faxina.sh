@@ -9,7 +9,7 @@
 #   bash scripts/git-faxina.sh          # mostra o que faria (dry-run)
 #   bash scripts/git-faxina.sh --apaga  # apaga de verdade
 #
-# So mexe em branch cujo PR esta MERGED. Nunca toca em main, na branch atual,
+# So mexe em branch cujo PR esta MERGED. Nunca toca na base (main/master), na branch atual,
 # nem em worktree com alteracao nao commitada.
 
 set -euo pipefail
@@ -20,6 +20,10 @@ APAGA=0
 
 git fetch --prune --quiet
 atual=$(git branch --show-current)
+# Base do remoto (main ou master): com "main" fixo, repo em master errava o
+# rev-parse e nunca pulava a propria master.
+base=$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null || true)
+base=${base#origin/}; base=${base:-main}
 
 # worktree sujo? path -> "sujo" | "limpo"
 declare -A wt_estado wt_branch
@@ -33,7 +37,7 @@ done < <(git worktree list --porcelain)
 
 removidas=0
 for b in $(git for-each-ref --format='%(refname:short)' refs/heads/); do
-  [ "$b" = "main" ] && continue
+  [ "$b" = "$base" ] && continue
   [ "$b" = "$atual" ] && continue
 
   # Dois sinais de "acabou", porque nenhum sozinho cobre tudo:
@@ -42,8 +46,8 @@ for b in $(git for-each-ref --format='%(refname:short)' refs/heads/); do
   #    por merge normal e nunca teve PR (o gh devolve NENHUM nesse caso).
   estado=$(gh pr list --head "$b" --state all --json state --jq '.[0].state // "NENHUM"' 2>/dev/null || echo NENHUM)
   if [ "$estado" != "MERGED" ]; then
-    [ -n "$(git branch --merged origin/main --list "$b")" ] || continue
-    [ "$(git rev-list --count "origin/main..$b")" = "0" ] || continue
+    [ -n "$(git branch --merged "origin/$base" --list "$b")" ] || continue
+    [ "$(git rev-list --count "origin/$base..$b")" = "0" ] || continue
   fi
 
   wt=${wt_branch["$b"]:-}
