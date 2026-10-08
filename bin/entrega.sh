@@ -53,7 +53,9 @@ if [ ${#arquivos[@]} -gt 0 ]; then
   grep -q '^Co-Authored-By:' "$msg" || { echo "mensagem sem Co-Authored-By: $msg" >&2; exit 1; }
   # -f: projeto versiona arquivo dentro de pasta ignorada (.claude/agents).
   git add -f -- "${arquivos[@]}"
-  if [ -f scripts/check-cache-bust.sh ]; then check bash scripts/check-cache-bust.sh --cached; fi
+  # BUMP_V=1: o check do projeto que conhece a variável faz o bump do ?v= em
+  # vez de barrar; o que não conhece ignora.
+  if [ -f scripts/check-cache-bust.sh ]; then BUMP_V=1 check bash scripts/check-cache-bust.sh --cached; fi
   git commit -q -F "$msg"
   echo "commit $(git rev-parse --short HEAD)"
 fi
