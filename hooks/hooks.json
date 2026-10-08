@@ -64,6 +64,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Read|Grep|Glob|Bash|Edit|Write|NotebookEdit|Agent|Task|SendMessage",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-explorer-nudge.js",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [
