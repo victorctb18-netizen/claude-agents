@@ -29,4 +29,7 @@ ACEITA_AVISO=1 bash "$e" commit feat com.msg '' -- a.txt >/dev/null
 [ "$(git log -1 --format=%s)" = 'Com trailer' ] && [ -z "$(git status --short a.txt)" ]
 printf 'fix(x): conventional\n\nCo-Authored-By: X <x@x>\n' > cc.msg; echo dois > a.txt
 ACEITA_AVISO=1 bash "$e" commit feat cc.msg '' -- a.txt >/dev/null   # conventional minúsculo passa
+printf 'echo "$BUMP_V" > bump.txt\n' > scripts/check-cache-bust.sh; echo tres > a.txt
+bash "$e" commit feat com.msg '' -- a.txt >/dev/null   # check recebe BUMP_V=1
+[ "$(cat bump.txt)" = 1 ]
 echo ok
