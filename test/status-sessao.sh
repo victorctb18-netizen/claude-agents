@@ -34,15 +34,18 @@ transcript() {
     require("fs").writeFileSync(process.argv[6], L.map(JSON.stringify).join("\n") + "\n");
   ' "$1" "$(m "$2")" "${3:-}" "${4:-}" "${5:-}" "$(m "$t")"
 }
-para() { printf '{"hook_event_name":"Stop","session_id":"s","cwd":"%s","transcript_path":"%s"}' "$(m "$d/r")" "$(m "$d/s.jsonl")" | node "$h"; }
+para() { printf '{"hook_event_name":"%s","session_id":"s","cwd":"%s","transcript_path":"%s"}' "${EV:-Stop}" "$(m "$d/r")" "$(m "$d/s.jsonl")" | node "$h"; }
 nome() { node -e 'let n=null;for(const l of require("fs").readFileSync(process.argv[1],"utf8").split("\n")){try{const o=JSON.parse(l);if(o.type==="custom-title")n=o.customTitle}catch{}}console.log(n)' "$(m "$d/s.jsonl")"; }
 linhas() { wc -l < "$d/s.jsonl" | tr -d ' '; }
 igual() { [ "$(nome)" = "$1" ] || { echo "FALHOU: esperado '$1', veio '$(nome)'"; exit 1; }; }
 
 unset FAKE_PR
 transcript "Pergunta solta" "$d/r"; para; igual null                     # sem branch de trabalho: não toca
-transcript "Tela nova" "$d/wt"; para; igual "FAZENDO · Tela nova"                 # worktree sem PR
+transcript "Tela nova" "$d/wt"; para; igual "SUA VEZ · Tela nova"                 # worktree sem PR
 n=$(linhas); para; [ "$(linhas)" = "$n" ]                                  # nome igual: não grava de novo
+EV=UserPromptSubmit para; igual "FAZENDO · Tela nova"                        # você respondeu: vez da sessão
+n=$(linhas); EV=UserPromptSubmit para; [ "$(linhas)" = "$n" ]               # já FAZENDO: não grava
+para; igual "SUA VEZ · Tela nova"                                            # parou de novo
 export FAKE_PR='{"number":12,"state":"OPEN","statusCheckRollup":[{"conclusion":"SUCCESS"}]}'
 para; igual "MERGE PR#12 · Tela nova"                                                 # troca o prefixo, não acumula
 export FAKE_PR='{"number":12,"state":"OPEN","statusCheckRollup":[{"conclusion":"FAILURE"}]}'
@@ -52,14 +55,14 @@ para; igual "FEITO PR#12 · Tela nova"
 # PR achado pela saída de ferramenta, mesmo com o cwd fora da worktree.
 transcript "Fix" "$d/r" "" "" "pr https://github.com/o/r/pull/14"; para; igual "FEITO PR#12 · Fix"
 unset FAKE_PR
-transcript "Outra" "$d/wt" "" "" "pr https://github.com/o/r/pull/14"; para; igual "FAZENDO · Outra"   # branch viva sem PR vence PR antigo
+transcript "Outra" "$d/wt" "" "" "pr https://github.com/o/r/pull/14"; para; igual "SUA VEZ · Outra"   # branch viva sem PR vence PR antigo
 export FAKE_PR='{"number":12,"state":"MERGED","statusCheckRollup":[]}'
 transcript "Tela nova" "$d/wt" "OK - Tela nova"; para; igual "OK - Tela nova"   # marcado à mão
 unset FAKE_PR
 transcript "Issue #507" "$d/r" "" "implementa a #507 (leia o corpo)"; para
 igual "#507 · Conta 1000 duplicatas a receber negativa"                      # issue pela mensagem, sem branch
 transcript "Algo" "$d/wt-issue"; para
-igual "FAZENDO #507 · Conta 1000 duplicatas a receber negativa"                   # issue pela branch
+igual "SUA VEZ #507 · Conta 1000 duplicatas a receber negativa"                   # issue pela branch
 export FAKE_PR='{"number":12,"state":"OPEN","statusCheckRollup":[]}'
 transcript "Algo" "$d/wt-issue"; para
 igual "MERGE PR#12 #507 · Conta 1000 duplicatas a receber negativa"         # issue com PR

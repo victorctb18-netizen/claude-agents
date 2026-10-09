@@ -1,6 +1,7 @@
 // Stop: põe o estado do trabalho na frente do nome da sessão, com o PR e a
 // issue: "FAZENDO", "MERGE PR#12", "CI✗ PR#12", "FEITO PR#12", "FECHADO PR#12",
-// "+ #507" em sessão de issue, cujo nome vira o título da issue. Palavra e não
+// "SUA VEZ" quando parou numa branch sem PR (vira "FAZENDO" assim que você
+// responde, no UserPromptSubmit), "+ #507" em sessão de issue, cujo nome vira o título da issue. Palavra e não
 // emoji: diz a ação que falta. A lista de sessões do VSCode não tem cor nem
 // campo próprio; o nome é o único lugar que aparece nela, e corta em ~25
 // caracteres, daí palavras de no máximo 7 letras.
@@ -16,7 +17,7 @@ const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, encoding: 'utf8',
 // Teste troca o gh por um script node, sem rede.
 const gh = (args, cwd) => process.env.STATUS_SESSAO_GH ? run('node', [process.env.STATUS_SESSAO_GH, ...args], cwd) : run('gh', args, cwd);
 // Também tira o emoji da primeira versão do hook.
-const PREFIXO = /^(?:(?:🔵|🟡|🔴|✅|⚪)\s*|(?:(?:FAZENDO|MERGE|CI✗|FEITO|FECHADO)(?: PR#\d+)?(?: #\d+)?|#\d+) · )/u;
+const PREFIXO = /^(?:(?:🔵|🟡|🔴|✅|⚪)\s*|(?:(?:FAZENDO|SUA VEZ|MERGE|CI✗|FEITO|FECHADO)(?: PR#\d+)?(?: #\d+)?|#\d+) · )/u;
 const BASES = ['main', 'master', 'HEAD', ''];
 
 function texto(c) {
@@ -96,7 +97,7 @@ function estadoPr(pr, br) {
   let v = null;
   if (br) v = JSON.parse(gh(['pr', 'list', '--head', br.b, '--state', 'all', '--limit', '1', '--json', campos], br.dir))[0] || null;
   else if (pr) v = JSON.parse(gh(['pr', 'view', pr.n, '--repo', pr.repo, '--json', campos]));
-  if (!v) return br ? 'FAZENDO' : null;
+  if (!v) return br ? 'SUA VEZ' : null;
   const n = ` PR#${v.number}`;
   if (v.state === 'MERGED') return 'FEITO' + n;
   if (v.state === 'CLOSED') return 'FECHADO' + n;
@@ -118,9 +119,14 @@ function tituloIssue(n, cwd) {
 }
 
 function decide(ev) {
-  if (ev.hook_event_name !== 'Stop' || !ev.transcript_path) return null;
+  if (!ev.transcript_path) return null;
   const r = ler(ev.transcript_path);
   const atual = r.custom || r.ai || '';
+  // Mensagem nova: a vez volta para a sessão. Só troca a palavra, sem gh, porque
+  // o PR não muda entre o Stop e a resposta.
+  if (ev.hook_event_name === 'UserPromptSubmit')
+    return atual.startsWith('SUA VEZ') ? 'FAZENDO' + atual.slice('SUA VEZ'.length) : null;
+  if (ev.hook_event_name !== 'Stop') return null;
   if (/^OK\s*-/i.test(atual)) return null;
   const br = branch(r.dirs, ev.cwd);
   const velho = (atual.match(PREFIXO) || [''])[0];

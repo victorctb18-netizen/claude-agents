@@ -119,12 +119,13 @@ eram ~1,5k tokens por spawn. Quem usa algum põe `false` no próprio
 
 A lista de sessões do VSCode só mostra o nome, sem cor nem campo extra. O hook
 `hook-status-sessao.js` usa esse nome como painel: ao fim de cada resposta
-(evento `Stop`), põe na frente dele o estado do trabalho, para você ver de
+(evento `Stop`, e `UserPromptSubmit` para voltar a `FAZENDO`), põe na frente dele o estado do trabalho, para você ver de
 relance qual sessão espera uma ação sua.
 
 | Prefixo | Quando aparece | O que falta fazer |
 |---|---|---|
-| `FAZENDO · …` | A sessão está numa branch de trabalho que ainda não tem PR. | Terminar e pedir o PR. |
+| `SUA VEZ · …` | A sessão parou numa branch de trabalho sem PR e espera resposta sua. | Responder, ou pedir o PR. |
+| `FAZENDO · …` | Você respondeu a uma sessão `SUA VEZ` e ela está trabalhando (`UserPromptSubmit`). | Esperar. |
 | `MERGE PR#12 · …` | PR aberto, CI verde ou ainda rodando. | Revisar e mergear. |
 | `CI✗ PR#12 · …` | PR aberto com algum check em `FAILURE`, `CANCELLED`, `TIMED_OUT` ou `ERROR`. | Ver o CI (`ci-triage`) e corrigir. |
 | `FEITO PR#12 · …` | PR mergeado. | Nada; pode fechar a sessão. |
