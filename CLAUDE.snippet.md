@@ -63,7 +63,7 @@ teste).
 Vale para todo texto gerado: resposta, comentário, teste, doc, commit, PR,
 e-mail, post.
 
-- **Sem travessão (—)**, em PT-BR ou inglês: vírgula, ponto, dois-pontos ou
+- **Sem travessão** (o traço longo, U+2014), em PT-BR ou inglês: vírgula, ponto, dois-pontos ou
   frase reescrita.
 - **Acento de verdade** (`só`, `é`, `já`, `até`), nunca apóstrofo no lugar
   (`so'`, `ja'`), mesmo que o arquivo vizinho use a convenção ASCII antiga.
