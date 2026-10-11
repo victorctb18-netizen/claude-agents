@@ -168,7 +168,7 @@ Prova: `bash test/status-sessao.sh`.
 | `hooks/hook-decisoes.js` | Depois de cada compactação, reinjeta os pedidos do usuário, as respostas do AskUserQuestion e os arquivos alterados, tirados do transcript. Prova: `bash test/decisoes.sh`. |
 | `hooks/hook-arvore.js` | Barra Edit/Write na árvore principal quando a branch é a base ou a árvore começou a sessão suja de outra; manda criar worktree com `git worktree add` (não `EnterWorktree`, que tira a sessão da lista do VSCode). Worktree, subagente e arquivo fora de repo passam. Prova: `bash test/arvore.sh`. |
 | `hooks/hook-status-sessao.js` | Estado, PR e issue na frente do nome da sessão; tabela em [Status no nome da sessão](#status-no-nome-da-sessão). Prova: `bash test/status-sessao.sh`. |
-| `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes", "Entrega" e "Autonomia e pronto". O instalador grava entre marcadores no `~/.claude/CLAUDE.md` e troca o bloco inteiro a cada execução. |
+| `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes", "Entrega", "Autonomia e pronto" e "Escrita". O instalador grava entre marcadores no `~/.claude/CLAUDE.md` e troca o bloco inteiro a cada execução. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
 | `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |
 | `bin/merge-mecanico.js` | Driver de merge: `?v=` vizinho e changelog `.json` com inserção dos dois lados. Resto do conflito volta com marcador. Prova: `bash test/merge.sh`. |
