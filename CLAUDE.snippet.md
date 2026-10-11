@@ -57,3 +57,13 @@ foi feito (cache-bust, build, o que o CLAUDE.md mandar). Passado o primeiro
 passe que "compila": inspecione o que mudou, rode, corrija, rode de novo. Se a
 tarefa era "fazer funcionar", a resposta final tem a evidência (saída do
 teste).
+
+## Escrita
+
+Vale para todo texto gerado: resposta, comentário, teste, doc, commit, PR,
+e-mail, post.
+
+- **Sem travessão** (o traço longo, U+2014), em PT-BR ou inglês: vírgula, ponto, dois-pontos ou
+  frase reescrita.
+- **Acento de verdade** (`só`, `é`, `já`, `até`), nunca apóstrofo no lugar
+  (`so'`, `ja'`), mesmo que o arquivo vizinho use a convenção ASCII antiga.
