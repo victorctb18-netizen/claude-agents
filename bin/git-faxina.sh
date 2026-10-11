@@ -45,20 +45,27 @@ for b in $(git for-each-ref --format='%(refname:short)' refs/heads/); do
   #  - grafo mergeado E 0 commits a frente: pega branch antiga que virou main
   #    por merge normal e nunca teve PR (o gh devolve NENHUM nesse caso).
   estado=$(gh pr list --head "$b" --state all --json state --jq '.[0].state // "NENHUM"' 2>/dev/null || echo NENHUM)
+  #    Só sem worktree: branch recém-criada pela sessão (worktree add -b ...
+  #    origin/main) também tem 0 commits a frente, e apagar levava junto o
+  #    trabalho que ela ainda nem tinha salvo.
+  wt=${wt_branch["$b"]:-}
   if [ "$estado" != "MERGED" ]; then
+    [ -z "$wt" ] || continue
     [ -n "$(git branch --merged "origin/$base" --list "$b")" ] || continue
     [ "$(git rev-list --count "origin/$base..$b")" = "0" ] || continue
   fi
 
-  wt=${wt_branch["$b"]:-}
   if [ -n "$wt" ] && [ -n "$(git -C "$wt" status --porcelain)" ]; then
     echo "PULA  $b  -> worktree com alteracao nao commitada: $wt"
     continue
   fi
 
   if [ "$APAGA" = 1 ]; then
-    [ -n "$wt" ] && git worktree remove --force "$wt"
-    git branch -D "$b"
+    # Falha no meio (arquivo preso no Windows) não pode sair como "APAGA".
+    if [ -n "$wt" ] && ! git worktree remove --force "$wt"; then
+      echo "FALHOU $b  -> worktree não removida: $wt"; continue
+    fi
+    git branch -D "$b" || { echo "FALHOU $b  -> branch não apagada"; continue; }
     git push origin --delete "$b" 2>/dev/null || true
     echo "APAGA $b${wt:+  (+ worktree $wt)}"
   else
