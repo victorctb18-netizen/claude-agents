@@ -90,6 +90,13 @@ for tentativa in $(seq 12); do
   [ "$tentativa" = 12 ] && { echo "nenhum check apareceu em 2 min" >&2; exit 1; }
   sleep 10
 done
+# --watch sai 0 com check cancelado: só reprova o que falhou. Em 13/10 o
+# hub-contabil #670 foi mergeado com o CI cancelado no meio (travado).
+ruins=$(gh pr checks "$branch" --json name,bucket -q '[.[]|select(.bucket!="pass" and .bucket!="skipping")|.name+" ("+.bucket+")"]|join(", ")' 2>/dev/null || true)
+if [ -n "$ruins" ]; then
+  echo "CI não passou: $ruins; run: $(gh run list --branch "$branch" --limit 1 --json databaseId -q '.[0].databaseId')" >&2
+  exit 1
+fi
 deploy=.github/workflows/deploy.yml
 antes=$( [ -f $deploy ] && gh run list --workflow=deploy.yml --limit 1 --json databaseId -q '.[0].databaseId' || true )
 gh pr merge "$branch" --squash
