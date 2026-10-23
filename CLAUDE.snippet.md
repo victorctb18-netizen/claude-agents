@@ -81,3 +81,6 @@ Handoff é arquivo, não texto para colar: `~/.claude/handoffs/<AAAAMMDD-HHMM>.m
 primeira linha `cwd: <pasta atual da sessão>`, depois em até 8 linhas: branch e
 PR, o que está pronto e provado, o que falta, decisões do usuário, arquivos-chave
 e o primeiro passo. O hook de SessionStart entrega à sessão nova da mesma pasta.
+Depois de gravar, mande no chat um bloco de código com o prompt pronto para
+colar na sessão nova (o conteúdo do handoff + "continue daqui"): serve quando a
+sessão nova abre em outra pasta, depois de 48h, ou em outra máquina.
