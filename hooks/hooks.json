@@ -118,6 +118,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "startup|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-handoff.js",
+            "timeout": 10
+          }
+        ]
       }
     ]
   },
