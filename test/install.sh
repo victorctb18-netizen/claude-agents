@@ -27,7 +27,7 @@ a.equal(s.enabledPlugins["code-simplifier@claude-plugins-official"], false, "tir
 a.equal(s.enabledPlugins["superpowers@claude-plugins-official"], true, "fora do pacote fica como o usuario deixou");
 a.ok(s.hooks.PreToolUse.some(g => g.hooks[0].command === "rtk hook claude"));
 a.equal(s.hooks.PreToolUse.length, 5);
-a.deepEqual(s.hooks.SessionStart.map(g => g.hooks[0].command.split("/").pop()), ["meu-hook", "hook-decisoes.js\"", "hook-arvore.js\""], "SessionStart antigo sai, o do usuario fica");
+a.deepEqual(s.hooks.SessionStart.map(g => g.hooks[0].command.split("/").pop()), ["meu-hook", "hook-decisoes.js\"", "hook-arvore.js\"", "hook-handoff.js\""], "SessionStart antigo sai, o do usuario fica");
 a.equal(s.hooks.PostToolUse.length, 3);
 const m = new RegExp(s.env.PONYTAIL_SUBAGENT_MATCHER, "i");
 a.ok(m.test("worker") && !m.test("entregador") && !m.test("explorer"), "ponytail so em quem escreve codigo");

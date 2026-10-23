@@ -67,3 +67,17 @@ e-mail, post.
   frase reescrita.
 - **Acento de verdade** (`só`, `é`, `já`, `até`), nunca apóstrofo no lugar
   (`so'`, `ja'`), mesmo que o arquivo vizinho use a convenção ASCII antiga.
+
+## Handoff entre sessões
+
+Sessão longa degrada; o corte certo é **fronteira de tarefa**, não o limite do
+contexto. Avise o usuário e grave o handoff quando: (a) o PR mergeou e o próximo
+assunto é outro; (b) a barra de contexto passou de 50% (não comece tarefa nova)
+ou 70% (feche o passo atual e faça o handoff agora); (c) a sessão já foi
+retomada duas vezes. Ao passar do corte, termine o passo em andamento (teste
+verde ou diff coerente) antes de escrever; handoff no meio de edição é o pior.
+
+Handoff é arquivo, não texto para colar: `~/.claude/handoffs/<AAAAMMDD-HHMM>.md`,
+primeira linha `cwd: <pasta atual da sessão>`, depois em até 8 linhas: branch e
+PR, o que está pronto e provado, o que falta, decisões do usuário, arquivos-chave
+e o primeiro passo. O hook de SessionStart entrega à sessão nova da mesma pasta.
