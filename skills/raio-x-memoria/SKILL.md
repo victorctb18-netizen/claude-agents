@@ -32,6 +32,9 @@ Leia **memória privada**, não só a RAM do Gerenciador de Tarefas: processo pa
 | Checklist: pentes de tamanhos diferentes | Dual channel parcial e o pente mais rápido cai para a velocidade do mais lento | Upgrade para 2 pentes iguais (2x16 GB) |
 | Checklist: Widgets | Web Experience Pack segue rodando (~250 MB) mesmo com Widgets desligado na barra | `Get-AppxPackage *WebExperience* \| Remove-AppxPackage` (volta pela Microsoft Store) |
 | Checklist: Chrome economia de memória | Abas paradas seguem carregadas; conversa longa de ChatGPT/Claude web passa de 600 MB | `chrome://settings/performance` → Economia de memória, Equilibrada; em "Sempre manter ativos" os sites que não podem parar (mensageiro, hub). Shift+Esc no Chrome mostra memória por aba |
+| Checklist: Edge guias em suspensão DESLIGADAS | Abas paradas do Edge seguem carregadas, como no Chrome sem economia | `edge://settings/system` → Otimizar desempenho → Guias em suspensão ligadas, 5 min |
+| `msedge (teste)` em Maiores | Edge/Chrome dos harnesses, separado do navegador do usuário | Ver a seção Navegador de teste: `Dono=morto` é órfão, `vivo` não se mexe |
+| `msedgewebview2 (<programa>)` | Navegador embutido do programa entre parênteses (SearchHost = busca do Iniciar, OUTLOOK, Teams) | Pesa com o programa; fechar ou desligar o programa, não o WebView2 |
 | `.wslconfig` com `memory=` alto e Docker ligado | VM do WSL reserva o teto | Desligar o Docker Desktop quando não usar |
 
 ## Limites do agente
