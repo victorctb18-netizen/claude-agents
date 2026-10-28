@@ -5,15 +5,12 @@
 const fs = require('fs');
 const MAX = 8000;
 // Texto injetado pelo harness chega como mensagem 'user'; não é pedido real.
-const SISTEMA = /^(<(system-reminder|task-notification|command-|local-command|agent-message)|Caveat:|\[Request interrupted)/;
+const SISTEMA = /^(<(system-reminder|browser_instruction|task-notification|command-|local-command|agent-message)|Caveat:|\[Request interrupted)/;
 
-let s = '';
-process.stdin.on('data', d => s += d).on('end', () => {
-  let ev;
-  try { ev = JSON.parse(s); } catch { return; }
-  if (ev.source !== 'compact' || !ev.transcript_path) return;
+// hook-handoff.js reusa para o transcript da sessão anterior ao /clear.
+function livro(transcript, titulo) {
   let linhas;
-  try { linhas = fs.readFileSync(ev.transcript_path, 'utf8').split('\n'); } catch { return; }
+  try { linhas = fs.readFileSync(transcript, 'utf8').split('\n'); } catch { return ''; }
 
   const pedidos = [], respostas = [], arquivos = new Map(), perguntas = new Set();
   const texto = c => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(b => b && b.type === 'text').map(b => b.text).join('\n') : '';
@@ -44,17 +41,29 @@ process.stdin.on('data', d => s += d).on('end', () => {
 
   const p = pedidos.slice(-25), r = respostas, a = [...arquivos.keys()].slice(-30);
   const monta = () => [
-    '# Livro de decisões (extraído do transcript; vale acima do resumo da compactação quando conflitar)',
+    titulo,
     p.length ? '## Pedidos do usuário\n' + p.map((x, i) => `${i + 1}. ${x}`).join('\n') : '',
     r.length ? '## Respostas a perguntas\n' + r.map((x, i) => `${i + 1}. ${x}`).join('\n') : '',
     a.length ? '## Arquivos alterados\n' + a.map(x => '- ' + x).join('\n') : '',
   ].filter(Boolean).join('\n\n');
-  if (!p.length && !r.length && !a.length) return;
+  if (!p.length && !r.length && !a.length) return '';
   let out = monta();
   // Teto: some o mais antigo primeiro, pedidos antes de respostas e arquivos.
   while (out.length > MAX && (p.length || r.length || a.length)) {
     (p.length ? p : r.length ? r : a).shift();
     out = monta();
   }
-  console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: out } }));
-});
+  return out;
+}
+module.exports = { livro };
+
+if (require.main === module) {
+  let s = '';
+  process.stdin.on('data', d => s += d).on('end', () => {
+    let ev;
+    try { ev = JSON.parse(s); } catch { return; }
+    if (ev.source !== 'compact' || !ev.transcript_path) return;
+    const out = livro(ev.transcript_path, '# Livro de decisões (extraído do transcript; vale acima do resumo da compactação quando conflitar)');
+    if (out) console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: out } }));
+  });
+}

@@ -1,0 +1,1 @@
+{ "name": "contexto-bar", "version": "0.2.0", "description": "Fio de cor acima do prompt: fica ou troca de sessão", "types": "./types/index.d.ts" }

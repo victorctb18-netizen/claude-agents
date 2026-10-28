@@ -1,0 +1,12 @@
+{
+  "name": "raio-x-memoria",
+  "version": "1.0.0",
+  "description": "Diagnóstico de RAM no Windows: o que pesa, por quê e a correção de cada causa.",
+  "author": {
+    "name": "victorctb18-netizen",
+    "url": "https://github.com/victorctb18-netizen"
+  },
+  "repository": "https://github.com/victorctb18-netizen/claude-agents",
+  "keywords": ["windows", "memoria", "ram", "diagnostico"],
+  "skills": ["./skills/raio-x-memoria"]
+}
