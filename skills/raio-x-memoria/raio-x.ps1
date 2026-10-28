@@ -15,7 +15,22 @@ if (Test-Path $wsl) { 'wslconfig: ' + ((Get-Content $wsl | Where-Object { $_ -ma
 
 ''
 '== Maiores (memória privada inclui o que foi para o pagefile)'
-$todos | Group-Object ProcessName | ForEach-Object {
+# Navegador de teste e o do usuário têm o mesmo nome de processo; somados,
+# o Edge dos harnesses parecia ser o navegador aberto. Cada filho leva o
+# --user-data-dir do pai, então a linha de comando separa os dois.
+$cim = Get-CimInstance Win32_Process
+$porPid = @{}; $cim | ForEach-Object { $porPid[[int]$_.ProcessId] = $_ }
+function DeTeste($c) { $c.Name -in 'msedge.exe', 'chrome.exe' -and ($c.CommandLine -like '*.edge-cdp-*' -or
+  ($c.CommandLine -match '--headless' -and $c.CommandLine -match '--remote-debugging')) }
+# WebView2 é o navegador embutido de outro programa; o nome sozinho não diz qual.
+function DonoWebView($c) {
+  while ($c -and $c.Name -eq 'msedgewebview2.exe') { $c = $porPid[[int]$c.ParentProcessId] }
+  if ($c) { $c.Name -replace '\.exe$' } else { '?' }
+}
+$todos | Group-Object { $c = $porPid[$_.Id]
+  if ($c -and (DeTeste $c)) { "$($_.ProcessName) (teste)" }
+  elseif ($_.ProcessName -eq 'msedgewebview2') { "msedgewebview2 ($(DonoWebView $c))" }
+  else { $_.ProcessName } } | ForEach-Object {
   [pscustomobject]@{ Nome = $_.Name; Qtd = $_.Count
     PrivMB = [math]::Round(($_.Group | Measure-Object PrivateMemorySize64 -Sum).Sum / 1MB)
     RamMB = [math]::Round(($_.Group | Measure-Object WorkingSet64 -Sum).Sum / 1MB) }
@@ -32,9 +47,7 @@ Get-ChildItem (Join-Path $claude 'sessions') -Filter *.json -ErrorAction Silentl
 } | Sort-Object ParadaH -Descending | Format-Table -AutoSize | Out-String -Width 200
 
 '== Navegador de teste (.edge-cdp-* ou headless com depuração); Dono=morto é órfão'
-$cim = Get-CimInstance Win32_Process
-$cim | Where-Object { $_.Name -in 'msedge.exe', 'chrome.exe' -and ($_.CommandLine -like '*.edge-cdp-*' -or
-  ($_.CommandLine -match '--headless' -and $_.CommandLine -match '--remote-debugging')) } | ForEach-Object {
+$cim | Where-Object { DeTeste $_ } | ForEach-Object {
   $raiz = $_.CommandLine -notmatch '--type='
   [pscustomobject]@{ Perfil = ($_.CommandLine -replace '.*user-data-dir="?([^" ]+).*', '$1' | Split-Path | Split-Path -Leaf)
     MB = [math]::Round($vivos[[int]$_.ProcessId].WorkingSet64 / 1MB)
@@ -80,6 +93,15 @@ if (Test-Path $chrome) {
   # state 2 = ligada; aggressiveness 1 = equilibrada.
   $hm = (Get-Content $chrome -Raw -Encoding UTF8 | ConvertFrom-Json).performance_tuning.high_efficiency_mode
   Item ($hm.state -eq 2) ('Chrome: economia de memória (state {0}, aggressiveness {1})' -f $hm.state, $hm.aggressiveness)
+}
+$edge = Join-Path $env:LOCALAPPDATA 'Microsoft\Edge\User Data'
+if (Test-Path "$edge\Default\Preferences") {
+  # Guias em suspensão vêm ligadas de fábrica; a chave só aparece quando alguém mexe.
+  $st = (Get-Content "$edge\Default\Preferences" -Raw -Encoding UTF8 | ConvertFrom-Json).edge.sleeping_tabs
+  $ef = (Get-Content "$edge\Local State" -Raw -Encoding UTF8 | ConvertFrom-Json).edge.perf_center.efficiency_mode_v2_is_active
+  Item ($st.enabled -ne $false) ('Edge: guias em suspensão ({0}, após {1} min; modo de eficiência {2})' -f
+    $(if ($st.enabled -ne $false) { 'ligadas' } else { 'DESLIGADAS' }), $(if ($st.threshold) { $st.threshold / 60 } else { '?' }),
+    $(if ($ef) { 'ligado' } else { 'desligado' }))
 }
 $warsaw = Get-Service 'Warsaw Technology' -ErrorAction SilentlyContinue
 Item (-not $warsaw) ('Warsaw {0} (~1,3 GB rodando; desinstalar é decisão do usuário, banco pede para reinstalar)' -f $(if ($warsaw) { "instalado, $($warsaw.Status)" } else { 'ausente' }))
