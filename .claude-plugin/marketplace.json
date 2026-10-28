@@ -1,0 +1,17 @@
+{
+  "name": "claude-agents",
+  "owner": {
+    "name": "victorctb18-netizen",
+    "url": "https://github.com/victorctb18-netizen"
+  },
+  "description": "Skills avulsas do claude-agents, instaláveis sem o pacote inteiro.",
+  "plugins": [
+    {
+      "name": "raio-x-memoria",
+      "source": "./",
+      "description": "Diagnóstico de RAM no Windows: o que pesa, por quê e a correção de cada causa (sessões do Claude, navegador de teste órfão, OneDrive, compressão de memória).",
+      "category": "productivity",
+      "keywords": ["windows", "memoria", "ram", "diagnostico"]
+    }
+  ]
+}

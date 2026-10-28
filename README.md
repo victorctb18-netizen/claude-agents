@@ -30,6 +30,12 @@ O instalador copia para `~/.claude/`:
 - o driver de merge `~/bin/merge-mecanico.js` (registrado no git global como
   `merge.mecanico`), que resolve sozinho conflito de `?v=` e de changelog
   `.json` nos repos que pedem por `.gitattributes`;
+- no Windows, `~/bin/faxina-memoria.ps1` e a tarefa agendada "Claude faxina de
+  memoria" (a cada 10 min): encerra o `claude.exe` de sessão do VSCode ociosa
+  (30 min se o nome diz terminada, 6 h nas outras) e Edge headless de harness
+  cujo node morreu (ou vivo há mais de 25 min). Log em `~/.claude/faxina-memoria.log`;
+- os mods de `mods/` em `~/.claude/mods/` (contexto-bar: fio de contexto e
+  botão de handoff acima do prompt);
 - o hook do `rtk` e o `RTK.md`, **só se a máquina já tem `rtk` no PATH**: sem
   isso o hook quebraria todo comando `Bash` de quem não tem o binário. Sem
   `rtk` instalado, o instalador imprime o comando certo pro seu sistema
@@ -68,6 +74,27 @@ condicional, veja acima), statusLine, chaves SSH e servidores MCP.
 
 **Instalação por projeto** (`node install.js <pasta>`): use apenas quando o
 projeto precisa de uma versão própria de algum agente.
+
+### Só o raio-x de memória (Windows), sem o resto do pacote
+
+Quem quer apenas o diagnóstico de RAM, sem agentes, hooks nem `CLAUDE.md`:
+
+```text
+/plugin marketplace add victorctb18-netizen/claude-agents
+/plugin install raio-x-memoria@claude-agents
+```
+
+O plugin atualiza sozinho quando a `version` do `.claude-plugin/plugin.json`
+sobe. Para ter a skill como arquivo editável no projeto (e em outros agentes,
+como Codex e Cursor):
+
+```bash
+npx skills@latest add victorctb18-netizen/claude-agents --skill raio-x-memoria
+```
+
+Depois, peça "meu PC está lento" ou "o que está comendo minha RAM". A faxina
+agendada não se instala sozinha por esses caminhos: o raio-x aponta quando ela
+falta e a skill entrega o comando para colar.
 
 ## Subagentes
 
@@ -170,6 +197,7 @@ Prova: `bash test/status-sessao.sh`.
 | `hooks/hook-status-sessao.js` | Estado, PR e issue na frente do nome da sessão; tabela em [Status no nome da sessão](#status-no-nome-da-sessão). Prova: `bash test/status-sessao.sh`. |
 | `CLAUDE.snippet.md` | Seções "Higiene de git", "Subagentes", "Entrega", "Autonomia e pronto" e "Escrita". O instalador grava entre marcadores no `~/.claude/CLAUDE.md` e troca o bloco inteiro a cada execução. |
 | `bin/git-faxina.sh` | Remove branches e worktrees cujo PR já foi mergeado. |
+| `skills/raio-x-memoria/faxina-memoria.ps1` | Windows, agendado (o instalador copia para `~/bin`): encerra `claude.exe` de sessão ociosa e Edge órfão de harness. `-Simular` só lista. |
 | `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |
 | `bin/merge-mecanico.js` | Driver de merge: `?v=` vizinho e changelog `.json` com inserção dos dois lados. Resto do conflito volta com marcador. Prova: `bash test/merge.sh`. |
 | `bin/claude-stats.js` | `node ~/bin/claude-stats.js [--dias 7] [--salva]`: compactações, spawns por tipo, maiores causas de contexto e travas disparadas; `--salva` guarda em `~/.claude/claude-stats.jsonl` e mostra a variação. Prova: `bash test/stats.sh`. |

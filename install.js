@@ -177,6 +177,25 @@ if (global) {
   // Relatório semanal: mede se as regras pegam (compactações, spawns, travas).
   copiar(path.join(aqui, 'bin', 'claude-stats.js'), path.join(bin, 'claude-stats.js'));
 
+  // Mods (contexto-bar: fio de contexto e botão de handoff acima do prompt).
+  // Sem rmSync: o Claude Code gera .claude-plugin/types/ dentro da pasta, e
+  // apagar a pasta inteira forçaria regerar a cada instalação.
+  for (const m of fs.readdirSync(path.join(aqui, 'mods')))
+    fs.cpSync(path.join(aqui, 'mods', m), path.join(claudeDir, 'mods', m), { recursive: true });
+
+  // Sessão arquivada no VSCode não encerra o claude.exe, e harness CDP morto
+  // deixa Edge vivo: a faxina devolve essa RAM a cada 10 min. conhost
+  // --headless porque powershell chamado direto pelo agendador pisca janela.
+  // O agendador não respeita o HOME falso do test/install.sh: sem a trava, o
+  // teste reapontava a tarefa real da máquina para um faxina-memoria.ps1 em
+  // pasta temporária, e a faxina parava calada.
+  if (process.platform === 'win32' && !process.env.CLAUDE_AGENTS_TESTE) {
+    const faxina = path.join(bin, 'faxina-memoria.ps1');
+    copiar(path.join(aqui, 'skills', 'raio-x-memoria', 'faxina-memoria.ps1'), faxina);
+    cp.spawnSync('schtasks', ['/Create', '/F', '/TN', 'Claude faxina de memoria', '/SC', 'MINUTE', '/MO', '10',
+      '/TR', 'conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + faxina + '"'], { stdio: 'ignore' });
+  }
+
   // rtk e' binario a parte (nao vem neste repo). So' liga o hook se a maquina
   // ja tem rtk no PATH: sem isso todo comando Bash quebraria pra quem nao tem.
   var rtkLigado = cp.spawnSync('rtk', ['--version'], { shell: true }).status === 0;

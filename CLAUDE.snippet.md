@@ -68,6 +68,19 @@ e-mail, post.
 - **Acento de verdade** (`só`, `é`, `já`, `até`), nunca apóstrofo no lugar
   (`so'`, `ja'`), mesmo que o arquivo vizinho use a convenção ASCII antiga.
 
+## Armadilhas já pagas
+
+- **Link para o usuário** (arquivo, print): `file:///C:/...` absoluto. Worktree
+  fica fora do workspace e o link relativo quebra.
+- **Horário**: API e log devolvem UTC; ao usuário, sempre em Brasília (UTC-3).
+- **Build sem saída não é build travado**: `| tail` segura tudo até o fim. Não
+  mate `docker compose`/build no meio; matar um recreate já travou o WSL.
+- **Fato do projeto** (decisão, regra de negócio, armadilha de infra ou teste)
+  vira `docs/memoria/<fato>.md` no repo, com linha em `docs/memoria/INDICE.md`,
+  no PR da tarefa: a memória automática do Claude fica presa a uma máquina.
+  Nela, só o que é da máquina ou da pessoa.
+- **PC lento ou memória cheia**: skill `raio-x-memoria` antes de chutar causa.
+
 ## Handoff entre sessões
 
 Sessão longa degrada; o corte certo é **fronteira de tarefa**, não o limite do

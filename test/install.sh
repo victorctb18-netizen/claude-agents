@@ -5,6 +5,7 @@ set -euo pipefail
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 export HOME="$(mktemp -d)"
 export USERPROFILE="$HOME"  # os.homedir() no Windows le USERPROFILE
+export CLAUDE_AGENTS_TESTE=1  # não registra a tarefa agendada real da máquina
 mkdir -p "$HOME/.claude"
 # CLAUDE.md de instalação anterior aos marcadores: seções soltas (uma com
 # outro nível de título) somem, a regra do usuário fica.
