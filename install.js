@@ -174,6 +174,10 @@ if (global) {
   cp.spawnSync('git', ['config', '--global', 'merge.mecanico.name', 'conflito mecanico: ?v= e changelog json']);
   cp.spawnSync('git', ['config', '--global', 'merge.mecanico.driver', 'node ~/bin/merge-mecanico.js %O %A %B %P']);
 
+  // "Posso encerrar a sessão?" conferido por script, não de cabeça.
+  copiar(path.join(aqui, 'bin', 'sessao-pronta.sh'), path.join(bin, 'sessao-pronta.sh'));
+  cp.spawnSync('git', ['config', '--global', 'alias.pronta', '!bash ~/bin/sessao-pronta.sh']);
+
   // Relatório semanal: mede se as regras pegam (compactações, spawns, travas).
   copiar(path.join(aqui, 'bin', 'claude-stats.js'), path.join(bin, 'claude-stats.js'));
 

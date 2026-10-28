@@ -18,4 +18,5 @@ jobs:
           bash test/faxina.sh
       - run: bash test/status-sessao.sh
       - run: bash test/stats.sh
+      - run: bash test/sessao-pronta.sh
       - run: node test/frontmatter.js
