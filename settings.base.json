@@ -5,7 +5,16 @@
       "Bash(git fetch:*)",
       "Bash(git worktree:*)",
       "Bash(git faxina:*)",
-      "Bash(bash ~/bin/git-faxina.sh:*)"
+      "Bash(bash ~/bin/git-faxina.sh:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(git pronta:*)",
+      "Bash(bash ~/bin/sessao-pronta.sh:*)"
     ]
   },
   "enabledPlugins": {

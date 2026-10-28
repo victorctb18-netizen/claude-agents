@@ -31,3 +31,8 @@ o motivo. `claude-stats` mede se pegou, `evals/` mede mudança de prompt.
 | Achado com `arquivo:linha`, relatório curto (agents) | texto: formato de resposta; `evals/` mede |
 | Teste de browser por polling, não timeout fixo (tester) | texto: julgamento sobre o teste |
 | Regra pegou? | `bin/claude-stats.js --salva`: compactações, spawns, causas de contexto, avisos e travas do nudge |
+| Veredito de 1 linha ao fim de ação longa, sem esperar "deu certo?" (snippet) | texto: o que é "ação longa" é julgamento |
+| Comando do usuário em bloco único, saída em arquivo no scratchpad (snippet) | texto; consultas só de leitura (`gh run`, `gh issue`, `docker logs`) no `allow` do `settings.base.json` |
+| "Posso encerrar?" conferido, não de cabeça (snippet) | `bin/sessao-pronta.sh` (`git pronta`); background, handoff e memória são texto |
+| Inglês na tela se traduz sem perguntar (snippet) | texto: o que é "na tela" é julgamento |
+| Mudança visual passa por mockup aprovado (snippet) | `skills/mockup-antes/`; disparar é texto |

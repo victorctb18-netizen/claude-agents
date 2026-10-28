@@ -58,6 +58,18 @@ passe que "compila": inspecione o que mudou, rode, corrija, rode de novo. Se a
 tarefa era "fazer funcionar", a resposta final tem a evidência (saída do
 teste).
 
+- **Feche o ciclo sem esperar "deu certo?"**: ação longa ou em background
+  (merge, deploy, build, comando que o usuário rodou) termina com veredito de
+  1 linha e a evidência (`merge ok #12 às 14:48`, `3 de 3 verdes`, a linha do
+  erro). "Deu certo?" voltou em metade das sessões.
+- **Comando que só o usuário roda** (admin, prod, processo de outra sessão):
+  um bloco único de PowerShell (ou bash) que grava a saída em arquivo no
+  scratchpad (`... *> "<scratchpad>\saida.txt"`), e você lê o arquivo. Nunca
+  "cole o resultado aqui": colagem corta e mistura prompt com saída.
+- **"Posso encerrar a sessão?"**: rode `git pronta` (só lê: árvore, push, PR,
+  worktree suja) e acrescente o que ele não vê: tarefa em background viva,
+  handoff a gravar, fato que devia ir para `docs/memoria/`.
+
 ## Escrita
 
 Vale para todo texto gerado: resposta, comentário, teste, doc, commit, PR,
@@ -67,6 +79,8 @@ e-mail, post.
   frase reescrita.
 - **Acento de verdade** (`só`, `é`, `já`, `até`), nunca apóstrofo no lugar
   (`so'`, `ja'`), mesmo que o arquivo vizinho use a convenção ASCII antiga.
+- **Texto em inglês na tela** (lib, pdf.js, mensagem de erro de terceiro) se
+  traduz para PT-BR no mesmo PR, sem perguntar.
 
 ## Armadilhas já pagas
 
@@ -80,6 +94,10 @@ e-mail, post.
   no PR da tarefa: a memória automática do Claude fica presa a uma máquina.
   Nela, só o que é da máquina ou da pessoa.
 - **PC lento ou memória cheia**: skill `raio-x-memoria` antes de chutar causa.
+- **Mudança visual de tela**: skill `mockup-antes` (opções em mockup, aprovação,
+  só então código). Implementar direto custou retrabalho em 8 sessões.
+- **Outro PC**: o que não vem pelo git está em `docs/outro-pc.md` do
+  claude-agents.
 
 ## Handoff entre sessões
 

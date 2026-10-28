@@ -25,6 +25,8 @@ O instalador copia para `~/.claude/`:
   `security-guidance` e `playwright`;
 - os modos caveman, ponytail e adhd, ativos por padrão;
 - o script `~/bin/git-faxina.sh` e o alias `git faxina`;
+- o script `~/bin/sessao-pronta.sh` e o alias `git pronta` ("posso encerrar a
+  sessão?": árvore, push, PR e worktree suja, só leitura);
 - o script `~/bin/entrega.sh` e o alias `git entrega` (commit, push, PR e merge
   num comando, sem subagente);
 - o driver de merge `~/bin/merge-mecanico.js` (registrado no git global como
@@ -70,7 +72,8 @@ $env:CLAUDE_CONFIG_DIR="$HOME\.claude-2"; node claude-agents/install.js --global
 ```
 
 **Não incluído** (depende da máquina): binário do `rtk` em si (só o hook, e
-condicional, veja acima), statusLine, chaves SSH e servidores MCP.
+condicional, veja acima), statusLine, chaves SSH e servidores MCP. O passo a
+passo desses está em [`docs/outro-pc.md`](docs/outro-pc.md).
 
 **Instalação por projeto** (`node install.js <pasta>`): use apenas quando o
 projeto precisa de uma versão própria de algum agente.
@@ -186,6 +189,7 @@ Prova: `bash test/status-sessao.sh`.
 | `skills/orchestrator/` | Decide entre delegar ou fazer direto; conduz o fluxo explorer → workers → tester → reviewer, com revisão proporcional ao risco, economia de tokens por spawn e a skill certa por etapa. |
 | `skills/prova-tela/` | Prova de teclado/DOM em navegador headless sem login: `SKILL.md` + `cdp-lib.js` (Edge/Chrome, servidor estático, stub de `fetch`, `--prints`). |
 | `skills/resolving-merge-conflicts/` | Fork do `mattpocock-skills`: triagem mecânica (`?v=`, changelog) antes de ler a intenção de cada lado. |
+| `skills/mockup-antes/` | Mudança visual: 2 a 5 opções em mockup com print, aprovação do usuário, só então código. |
 | `skills/to-spec/` | Fork do `mattpocock-skills`: marca `[NEEDS CLARIFICATION]` e pergunta tudo numa mensagem antes de publicar. |
 | `skills/mapping-and-dispatching-issues/` | Pilha de issues → mapa priorizado → sessões/worktrees em paralelo. |
 | `hooks/hook-node-check.js` | Após salvar um arquivo, roda `node --check` ou `py_compile` e bloqueia se houver erro de sintaxe. |
@@ -200,6 +204,7 @@ Prova: `bash test/status-sessao.sh`.
 | `skills/raio-x-memoria/faxina-memoria.ps1` | Windows, agendado (o instalador copia para `~/bin`): encerra `claude.exe` de sessão ociosa e Edge órfão de harness. `-Simular` só lista. |
 | `bin/entrega.sh` | `git entrega commit\|pr\|merge`: confere branch, `Co-Authored-By` e os `scripts/check-*.sh` do projeto, commita, abre ou reaproveita o PR, espera CI e deploy. Prova: `bash test/entrega.sh`. |
 | `bin/merge-mecanico.js` | Driver de merge: `?v=` vizinho e changelog `.json` com inserção dos dois lados. Resto do conflito volta com marcador. Prova: `bash test/merge.sh`. |
+| `bin/sessao-pronta.sh` | `git pronta`: lista o que falta antes de encerrar a sessão (árvore, push, PR, worktree suja); sai 1 se há pendência. Prova: `bash test/sessao-pronta.sh`. |
 | `bin/claude-stats.js` | `node ~/bin/claude-stats.js [--dias 7] [--salva]`: compactações, spawns por tipo, maiores causas de contexto e travas disparadas; `--salva` guarda em `~/.claude/claude-stats.jsonl` e mostra a variação. Prova: `bash test/stats.sh`. |
 | `evals/` | Tarefas fixas rodadas com `claude -p` antes e depois de mudar prompt/hook; ver `evals/README.md`. |
 | `docs/regras.md` | Cada regra do snippet e dos agentes e o que a garante (hook, script ou só texto, com o motivo). |
