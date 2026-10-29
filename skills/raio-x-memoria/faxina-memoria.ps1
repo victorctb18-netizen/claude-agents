@@ -21,12 +21,23 @@ $mortos = @()
 # VSCode sobe outro claude.exe com --resume. Nome de sessão terminada (marcado
 # à mão "OK -" ou pelo hook-status-sessao) sai em 30 min; o resto, em 6 h.
 $terminada = '^(OK -|FEITO|FECHADO|✅|⚪)'
+# Comando em andamento (background do Bash/PowerShell, Monitor, merge esperando
+# CI, npm run dev) é um shell abaixo do claude.exe; o MCP sobe por cmd/node,
+# nunca por shell. Sessão com shell vivo fica, não importa nome nem idade.
+$filhos = @{}
+Get-CimInstance Win32_Process | ForEach-Object { $filhos[[int]$_.ParentProcessId] += , $_ }
+function Tem-Shell($id) {
+  foreach ($c in $filhos[[int]$id]) {
+    if ($c.Name -in 'bash.exe', 'powershell.exe', 'pwsh.exe' -or (Tem-Shell $c.ProcessId)) { return $true }
+  }
+  $false
+}
 foreach ($f in Get-ChildItem (Join-Path $claude 'sessions') -Filter *.json -ErrorAction SilentlyContinue) {
   try { $s = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json } catch { continue }
   # PID reaproveitado pelo Windows: o arquivo fica, o processo é outro.
   $p = Get-Process -Id $s.pid -ErrorAction SilentlyContinue
   if (-not $p -or $p.ProcessName -ne 'claude') { continue }
-  if ($s.entrypoint -ne 'claude-vscode' -or $s.status -ne 'idle') { continue }
+  if ($s.entrypoint -ne 'claude-vscode' -or $s.status -ne 'idle' -or (Tem-Shell $p.Id)) { continue }
   $limite = if ($s.name -match $terminada) { 30 } else { 360 }
   $parada = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$s.statusUpdatedAt).LocalDateTime
   # O status nem sempre acompanha o turno; o transcript é a prova de atividade.

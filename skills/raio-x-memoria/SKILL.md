@@ -19,7 +19,7 @@ Leia **memória privada**, não só a RAM do Gerenciador de Tarefas: processo pa
 
 | Sinal no raio-x | Causa | Correção |
 |---|---|---|
-| Mais `claude.exe` do que sessões visíveis no VSCode; nomes "OK -", FEITO, FECHADO | Arquivar ou fechar a sessão não encerra o processo (~600 MB cada) | A faxina agendada encerra (linha "Faxina agendada" abaixo). Sessão encerrada reabre com o histórico; a 1ª mensagem depois pode se perder, é só reenviar |
+| Mais `claude.exe` do que sessões visíveis no VSCode; nomes "OK -", FEITO, FECHADO | Arquivar ou fechar a sessão não encerra o processo (~600 MB cada) | A faxina agendada encerra (poupa a sessão com shell vivo: tarefa em background, Monitor, dev server) (linha "Faxina agendada" abaixo). Sessão encerrada reabre com o histórico; a 1ª mensagem depois pode se perder, é só reenviar |
 | Navegador de teste com `Dono=morto` ou mais de 25 min | Harness `.cdp.js` morto; a varredura do `cdp-lib.js` procura pela pasta, que some com a worktree | Mesma faxina. `Dono=vivo` é teste de outra sessão rodando: não mexa |
 | Origem `tmp.*` (Chrome headless com perfil em `Temp`) | Sessão abriu um Chrome à mão para dividir entre harnesses e nunca fechou | Mesma faxina, aos 25 min |
 | Mais de 500 MB em `SearchIndexer` | Indexação do Windows varrendo pasta de código (worktrees, `node_modules`) | Opções de Indexação → Modificar → desmarcar `Documents\VSCode` |
