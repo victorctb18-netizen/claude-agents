@@ -29,4 +29,15 @@ teste e revisão. Mockup é descartável; código não.
 - Mockup fica no scratchpad, nunca no repo.
 - Opções diferentes de verdade (estrutura, não só cor). Duas quase iguais
   gastam a atenção do usuário.
+- **Referência externa ("gosto da estética do site X") não é o ponto de
+  partida.** Parta da identidade que a tela já tem e tire da referência só o
+  acabamento (contraste, espaço, tipografia). Copiar o gênero da referência
+  (cartão, vidro, brilho, Inter/Geist, saudação gigante, barra Ctrl+K) deu 6
+  opções descartadas por "cara de IA" no hub-contabil em 30/10/2026; o
+  aprovado foi o balancete de sempre, polido.
+- **Mockup de tela existente = a própria página com `<style>` por cima**, não
+  HTML refeito à mão: fidelidade de graça e o CSS aprovado vira o diff. Sirva
+  página e repo da mesma origem (fonte por URL relativa não carrega de
+  `file://`) e chame o headless com `execFile` assíncrono: com
+  `execFileSync` o servidor no mesmo processo nunca responde.
 - Iteração da mesma tela é um PR só, mergeado quando o usuário aprovou.
