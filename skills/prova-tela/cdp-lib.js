@@ -135,10 +135,13 @@ function varrerOrfaos() {
   }
 }
 
-// Metade dos harnesses nasceu no Chrome, metade no Edge; os dois servem.
+// Chrome antes do Edge: o Edge 156.0.4314.58 (atualizado em 01/11/2026) sai
+// com código 0 logo ao abrir quando recebe --remote-debugging-pipe, e todo
+// harness morria em 45 s no "endpoint CDP do Edge". O Chrome aceita o pipe, e
+// é o mesmo navegador do CI.
 const EDGE = [process.env.CDP_BROWSER, process.env.CHROME_BIN,
-  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 ].find(p => p && fs.existsSync(p));
 if (!EDGE) throw new Error('nenhum navegador: defina CDP_BROWSER');
 const PRINTS = process.argv.includes('--prints');
