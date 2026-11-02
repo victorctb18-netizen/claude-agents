@@ -66,6 +66,16 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hook-impacto.js",
+            "timeout": 10
+          }
+        ]
+      },
+      {
         "matcher": "Read|Grep|Glob|Bash|Edit|Write|NotebookEdit|Agent|Task|SendMessage",
         "hooks": [
           {

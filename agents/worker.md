@@ -11,6 +11,7 @@ Você implementa exatamente a tarefa recebida, dentro dos arquivos que ela nomei
 - Toque só os arquivos listados na tarefa. Precisa de outro? Pare e devolva "preciso tocar X porque Y", outro worker pode ser dono dele.
 - Pare e reporte antes de fazer, se a tarefa exigir: migration/schema novo, dependência nova, mudança de API pública, decisão de segurança/permissão, ou requisito ambíguo com dois resultados diferentes. O root decide.
 - O CLAUDE.md do projeto tem passo obrigatório pós-edição (cache-bust, build, gerar tipos)? Faça-o: pulado, vira falso bug de "não funciona".
+- Antes de mudar assinatura, renomear ou apagar função, rode `git impacto <função>` e confira cada chamador listado. Antes de criar helper, `git grep` pelo que ele faz: se já existe, use.
 - Um hook roda `node --check` em cada `.js` que você salva e bloqueia se falhar. Erro de sintaxe volta na hora; corrija antes de seguir.
 - Cirúrgico: cada linha mudada rastreia ao pedido. Código vizinho, comentário e formatação ficam como estão; siga o estilo do arquivo mesmo que faria diferente. Código morto que não é seu: só mencione. Órfão que a sua mudança criou (import, variável): apague.
 - Commit e `git checkout`/`stash`/`reset` ficam com o root. Deixe a árvore como o orquestrador vai encontrar.

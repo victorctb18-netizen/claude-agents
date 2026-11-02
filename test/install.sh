@@ -29,7 +29,7 @@ a.equal(s.enabledPlugins["superpowers@claude-plugins-official"], true, "fora do 
 a.ok(s.hooks.PreToolUse.some(g => g.hooks[0].command === "rtk hook claude"));
 a.equal(s.hooks.PreToolUse.length, 5);
 a.deepEqual(s.hooks.SessionStart.map(g => g.hooks[0].command.split("/").pop()), ["meu-hook", "hook-decisoes.js\"", "hook-arvore.js\"", "hook-handoff.js\""], "SessionStart antigo sai, o do usuario fica");
-a.equal(s.hooks.PostToolUse.length, 3);
+a.equal(s.hooks.PostToolUse.length, 4);
 const m = new RegExp(s.env.PONYTAIL_SUBAGENT_MATCHER, "i");
 a.ok(m.test("worker") && !m.test("entregador") && !m.test("explorer"), "ponytail so em quem escreve codigo");
 a.equal(s.disableClaudeAiConnectors, true);
@@ -56,6 +56,7 @@ node "$repo/install.js" --global >/dev/null
 [ ! -e "$HOME/.claude/agents/velho.md" ] && [ -f "$HOME/.claude/agents/meu.md" ] && [ -f "$HOME/.claude/agents/worker.md" ]
 [ -f "$HOME/bin/git-faxina.sh" ] && [ -f "$HOME/.claude/.ponytail-active" ]
 [ "$(git config --global alias.faxina)" = '!bash ~/bin/git-faxina.sh' ]
+git config --global alias.impacto | grep -q 'hooks/hook-impacto.js"$'
 [ "$(git config --global merge.mecanico.driver)" = 'node ~/bin/merge-mecanico.js %O %A %B %P' ]
 [ -f "$HOME/bin/merge-mecanico.js" ] && [ -f "$HOME/bin/claude-stats.js" ] && [ -f "$HOME/.claude/skills/prova-tela/cdp-lib.js" ]
 CLAUDE_CONFIG_DIR="$HOME/.claude-2" node "$repo/install.js" --global >/dev/null

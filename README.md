@@ -25,6 +25,8 @@ O instalador copia para `~/.claude/`:
   `security-guidance` e `playwright`;
 - os modos caveman, ponytail e adhd, ativos por padrão;
 - o script `~/bin/git-faxina.sh` e o alias `git faxina`;
+- o alias `git impacto <arquivo|símbolo>` (quem depende dele, lista inteira) e
+  o hook que avisa ao editar arquivo citado por 20+ outros;
 - o script `~/bin/sessao-pronta.sh` e o alias `git pronta` ("posso encerrar a
   sessão?": árvore, push, PR e worktree suja, só leitura);
 - o script `~/bin/entrega.sh` e o alias `git entrega` (commit, push, PR e merge
