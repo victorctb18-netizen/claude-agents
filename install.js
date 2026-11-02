@@ -174,6 +174,10 @@ if (global) {
   cp.spawnSync('git', ['config', '--global', 'merge.mecanico.name', 'conflito mecanico: ?v= e changelog json']);
   cp.spawnSync('git', ['config', '--global', 'merge.mecanico.driver', 'node ~/bin/merge-mecanico.js %O %A %B %P']);
 
+  // Quem depende de arquivo ou símbolo, com a saída inteira (o resumo do rtk
+  // escondia chamador). O script é o mesmo do hook de arquivo central.
+  cp.spawnSync('git', ['config', '--global', 'alias.impacto', '!node "' + path.join(hooksDir, 'hook-impacto.js').replace(/\\/g, '/') + '"']);
+
   // "Posso encerrar a sessão?" conferido por script, não de cabeça.
   copiar(path.join(aqui, 'bin', 'sessao-pronta.sh'), path.join(bin, 'sessao-pronta.sh'));
   cp.spawnSync('git', ['config', '--global', 'alias.pronta', '!bash ~/bin/sessao-pronta.sh']);

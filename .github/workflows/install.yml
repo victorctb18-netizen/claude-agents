@@ -11,6 +11,7 @@ jobs:
       - run: bash test/merge.sh
       - run: bash test/worker-nudge.sh
       - run: bash test/explorer-nudge.sh
+      - run: bash test/impacto.sh
       - run: bash test/entrega.sh
       - run: bash test/agent-model.sh
       - run: bash test/decisoes.sh
