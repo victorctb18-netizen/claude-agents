@@ -79,4 +79,9 @@ s="$HOME/.claude/skills"
 git -C "$up" rm -rq skills/eng/velha; git -C "$up" commit -qm dois
 MATT_SKILLS_DIR="$HOME/clone" node "$repo/install.js" --global --upstream >/dev/null
 [ ! -e "$s/velha" ] && [ -f "$s/tdd/SKILL.md" ] && [ -f "$s/minha/SKILL.md" ]
+# rtk instalado depois: CLAUDE.md já com o bloco ganha o @RTK.md na reinstalação.
+mkdir -p "$HOME/fakebin"; echo 'echo rtk 0' > "$HOME/fakebin/rtk"; chmod +x "$HOME/fakebin/rtk"
+echo '@echo rtk 0' > "$HOME/fakebin/rtk.cmd"  # Windows: spawnSync com shell passa pelo cmd
+PATH="$HOME/fakebin:$PATH" node "$repo/install.js" --global >/dev/null
+head -1 "$HOME/.claude/CLAUDE.md" | grep -qx '@RTK.md'
 echo ok
