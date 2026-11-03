@@ -231,6 +231,7 @@ if (global) {
 const claudeMd = global ? path.join(claudeDir, 'CLAUDE.md') : path.join(alvoDir, 'CLAUDE.md');
 // CRLF -> LF: checkout no Windows (autocrlf) deixa CR no fim das linhas.
 let existente = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8').replace(/\r\n/g, '\n') : '';
+const original = existente;
 if (typeof rtkLigado !== 'undefined' && rtkLigado && !existente.includes('@RTK.md'))
   existente = '@RTK.md\n\n' + existente;
 const INI = '<!-- claude-agents: gerado por install.js, edite no repo claude-agents -->';
@@ -250,7 +251,7 @@ else {
     .join('').trimEnd();
   novoMd = (novoMd ? novoMd + '\n\n' : '') + bloco;
 }
-if (novoMd === existente) console.log('mantido  ' + claudeMd);
+if (novoMd === original) console.log('mantido  ' + claudeMd);
 else {
   fs.writeFileSync(claudeMd, novoMd);
   console.log('trecho   ' + claudeMd);
